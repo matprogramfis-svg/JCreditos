@@ -1,0 +1,119 @@
+package com.jcdc.jcreditos.model;
+
+public class Credito {
+		private int id;
+		private int clienteId;
+		private int planId;
+		private double capital;
+		private double interesPorcentaje;
+		private double interesMonto;
+		private double total;
+		private String fechaInicio; // Usar String para DATE
+		private int estado;
+		private String creadoTs;
+
+		// Constructor, Getters y Setters
+		// (Omito la implementación de Getters/Setters para ahorrar espacio, pero debes incluirlos)
+		// ...
+		// ...
+
+
+		public void setId(int id)
+			{
+				this.id = id;
+			}
+
+		public int getId()
+			{
+				return id;
+			}
+
+		public void setClienteId(int clienteId)
+			{
+				this.clienteId = clienteId;
+			}
+
+		public int getClienteId()
+			{
+				return clienteId;
+			}
+
+		public void setPlanId(int planId)
+			{
+				this.planId = planId;
+			}
+
+		public int getPlanId()
+			{
+				return planId;
+			}
+
+		public void setCapital(double capital)
+			{
+				this.capital = capital;
+			}
+
+		public double getCapital()
+			{
+				return capital;
+			}
+
+		public void setInteresPorcentaje(double interesPorcentaje)
+			{
+				this.interesPorcentaje = interesPorcentaje;
+			}
+
+		public double getInteresPorcentaje()
+			{
+				return interesPorcentaje;
+			}
+
+		public void setInteresMonto(double interesMonto)
+			{
+				this.interesMonto = interesMonto;
+			}
+
+		public double getInteresMonto()
+			{
+				return interesMonto;
+			}
+
+		public void setTotal(double total)
+			{
+				this.total = total;
+			}
+
+		public double getTotal()
+			{
+				return total;
+			}
+
+		public void setFechaInicio(String fechaInicio)
+			{
+				this.fechaInicio = fechaInicio;
+			}
+
+		public String getFechaInicio()
+			{
+				return fechaInicio;
+			}
+
+		public void setEstado(int estado)
+			{
+				this.estado = estado;
+			}
+
+		public int getEstado()
+			{
+				return estado;
+			}
+
+		public void setCreadoTs(String creadoTs)
+			{
+				this.creadoTs = creadoTs;
+			}
+
+		public String getCreadoTs()
+			{
+				return creadoTs;
+			}}
