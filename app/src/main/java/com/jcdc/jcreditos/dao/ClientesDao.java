@@ -34,12 +34,11 @@ public class ClientesDao {
 				return cliente;
 			}
 
-		// --- Insertar Cliente ---
+		// --- Insertar Cliente (C) ---
 		public long insertCliente(Cliente cliente) {
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 				ContentValues values = new ContentValues();
-				// ID y CREADO_TS se dejan fuera (manejo automático)
 				values.put(DatabaseContract.Clientes.NOMBRE, cliente.getNombre());
 				values.put(DatabaseContract.Clientes.CI, cliente.getCi());
 				values.put(DatabaseContract.Clientes.TELEFONO, cliente.getTelefono());
@@ -52,7 +51,7 @@ public class ClientesDao {
 				return newRowId;
 			}
 
-		// --- Obtener por ID (Retorna POJO) ---
+		// --- Obtener por ID (R) ---
 		public Cliente getClienteById(int id) {
 				Cliente cliente = null;
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -71,7 +70,7 @@ public class ClientesDao {
 				return cliente;
 			}
 
-		// --- Obtener Todos (Retorna Lista de POJOs) ---
+		// --- Obtener Todos (R) - Solo ACTIVOS ---
 		public List<Cliente> getAllClientes() {
 				List<Cliente> lista = new ArrayList<>();
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -91,5 +90,50 @@ public class ClientesDao {
 				cursor.close();
 				db.close();
 				return lista;
+			}
+
+		// --- Actualizar Cliente (U) ---
+		public int updateCliente(Cliente cliente) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Clientes.NOMBRE, cliente.getNombre());
+				values.put(DatabaseContract.Clientes.CI, cliente.getCi());
+				values.put(DatabaseContract.Clientes.TELEFONO, cliente.getTelefono());
+				values.put(DatabaseContract.Clientes.DIRECCION, cliente.getDireccion());
+				values.put(DatabaseContract.Clientes.GARANTIA, cliente.getGarantia());
+				values.put(DatabaseContract.Clientes.ESTADO, cliente.getEstado());
+
+				String selection = DatabaseContract.Clientes.ID + " = ?";
+				String[] selectionArgs = { String.valueOf(cliente.getId()) };
+
+				int count = db.update(
+					DatabaseContract.Clientes.TABLE,
+					values,
+					selection,
+					selectionArgs
+				);
+				db.close();
+				return count; 
+			}
+
+		// --- Desactivar (Eliminar Lógicamente) Cliente (D) ---
+		public int desactivarCliente(int id) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Clientes.ESTADO, 0); // 0 = Desactivado
+
+				String selection = DatabaseContract.Clientes.ID + " = ?";
+				String[] selectionArgs = { String.valueOf(id) };
+
+				int count = db.update(
+					DatabaseContract.Clientes.TABLE,
+					values,
+					selection,
+					selectionArgs
+				);
+				db.close();
+				return count; 
 			}
 	}

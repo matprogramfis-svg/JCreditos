@@ -3,7 +3,8 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:gravity="center">
+	android:gravity="center"
+	android:orientation="vertical">
 
 	<TextView
 		android:text="@string/hello_world"
@@ -14,7 +15,25 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:id="@+id/btn_plan"
-		android:text="Button"/>
+		android:text="Plan"/>
+
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/btn_cliente"
+		android:text="Cliente"/>
+
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/btn_credito"
+		android:text="Credito"/>
+
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/btn_cuotas"
+		android:text="Cuotas"/>
 
 </LinearLayout>
 

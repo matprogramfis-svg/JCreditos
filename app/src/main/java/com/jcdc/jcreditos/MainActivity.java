@@ -20,13 +20,28 @@ public class MainActivity extends Activity implements OnClickListener
 		//Button btnPlan;
 
 		@Override
-		public void onClick(View p1)
+		public void onClick(View btn)
 			{
+				switch(btn.getId())
+					{
+						case R.id.btn_plan:	
+							Intent nuevo = new Intent(this,PlanesActivity.class);
+							startActivity(nuevo);	
+							break;
+						case R.id.btn_cliente:	
+							Intent clie = new Intent(this,ListaClientesActivity.class);
+							startActivity(clie);	
+							break;
+						case R.id.btn_credito:	
+							//Intent clie = new Intent(this,ListaClientesActivity.class);
+							//plan.putExtra("stIdCr","");
+							//startActivity(clie);	
+							break;
+					}
 				// Iniciar la Activity de gestión de planes
-                Intent intent = new Intent(this, PlanesActivity.class);
-
+               /* Intent intent = new Intent(this, PlanesActivity.class);
                 // Usamos startActivityForResult para saber cuándo volver y recargar el Spinner
-                startActivityForResult(intent, 2);
+                startActivityForResult(intent, 2);*/
 			}
 		
     @Override
@@ -36,7 +51,8 @@ public class MainActivity extends Activity implements OnClickListener
         setContentView(R.layout.main);
 		
 		findViewById(R.id.btn_plan).setOnClickListener(this);
-		
+		findViewById(R.id.btn_cliente).setOnClickListener(this);
+		findViewById(R.id.btn_credito).setOnClickListener(this);
 		// 🔥 LLAMAR AQUÍ AL DUMP
       /*  DbHelper helper = new DbHelper(this);
         SQLiteDatabase db = helper.getReadableDatabase();
