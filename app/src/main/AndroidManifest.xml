@@ -18,6 +18,8 @@
             </intent-filter>
         </activity>
 		<activity android:name=".CreditoDetalleActivity"/>
+		<activity android:name=".ui.PlanesActivity"/>
+		<activity android:name=".ui.PlanDetalleActivity" />
     </application>
 
 </manifest>

@@ -9,28 +9,46 @@ import android.util.*;
 import com.jcdc.jcreditos.dao.*;
 import com.jcdc.jcreditos.db.*;
 import com.jcdc.jcreditos.model.*;
+import com.jcdc.jcreditos.ui.*;
 import java.util.*;
+import android.view.View.*;
+import android.view.*;
+import android.widget.*;
 
-public class MainActivity extends Activity 
-{
+public class MainActivity extends Activity implements OnClickListener
+	{
+		//Button btnPlan;
+
+		@Override
+		public void onClick(View p1)
+			{
+				// Iniciar la Activity de gestión de planes
+                Intent intent = new Intent(this, PlanesActivity.class);
+
+                // Usamos startActivityForResult para saber cuándo volver y recargar el Spinner
+                startActivityForResult(intent, 2);
+			}
+		
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		
+		findViewById(R.id.btn_plan).setOnClickListener(this);
+		
 		// 🔥 LLAMAR AQUÍ AL DUMP
-        DbHelper helper = new DbHelper(this);
+      /*  DbHelper helper = new DbHelper(this);
         SQLiteDatabase db = helper.getReadableDatabase();
 
         dumpTable(db, DatabaseContract.Estados.TABLE);   // Ejemplo
         dumpTable(db, DatabaseContract.Creditos.TABLE); // Otro ejemplo
         dumpTable(db, DatabaseContract.Cuotas.TABLE);    // Otro ejemplo
 		dumpTable(db, DatabaseContract.Planes.TABLE);
-        db.close();
+        db.close();*/
 		//runFullIntegrationTest(this);
 		//pruebaDao();
-		runTestAndDisplayCredit(this);
+		//runTestAndDisplayCredit(this);
     }
 	// ***
 		public void dumpTable(SQLiteDatabase db, String tableName) {
@@ -75,7 +93,7 @@ public class MainActivity extends Activity
 		//import android.util.Log;
 // ... y todos tus POJOs y DAOs
 
-		private void runFullIntegrationTest(Context context) {
+		/*private void runFullIntegrationTest(Context context) {
 				Log.d("TEST_DB", "--- INICIANDO PRUEBA DE INTEGRACIÓN DE CRÉDITO ---");
 
 				// Inicializa DAOs
@@ -166,11 +184,11 @@ public class MainActivity extends Activity
 					} else {
 						Log.e("TEST_DB", "❌ FALLO al insertar el crédito o las cuotas. Revise Logcat para errores de ParseException.");
 					}
-			}
+			}*/
 		// ***
 
 // Usaremos un Context de una Activity real para iniciar la nueva Activity
-		public void runTestAndDisplayCredit(Context context) {
+		/*public void runTestAndDisplayCredit(Context context) {
 				Log.d("TEST_FINAL", "--- INICIANDO PRUEBA DE VISUALIZACIÓN DE CRÉDITO ---");
 
 				// Inicializa DAOs
@@ -233,6 +251,6 @@ public class MainActivity extends Activity
 					} else {
 						Log.e("TEST_FINAL", "❌ FALLO al guardar el crédito o generar las cuotas.");
 					}
-			}
+			}*/
 			
 }

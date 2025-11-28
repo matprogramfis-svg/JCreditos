@@ -118,13 +118,13 @@ public class CreditosDao {
 							}
 
 						// 2. APLICAR SALTO DOMINGO
-						if (plan.getSaltoDomingo() == 1) {
+						/*if (plan.getSaltoDomingo() == 1) {
 								// Si el día de pago cae en domingo, salta al lunes
 								// Calendar.SUNDAY = 1
 								while (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
 										calendar.add(Calendar.DAY_OF_MONTH, 1); // Agregar un día más
 									}
-							}
+							}*/
 
 						String fechaPago = dateFormat.format(calendar.getTime());
 

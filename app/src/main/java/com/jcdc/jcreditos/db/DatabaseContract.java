@@ -65,17 +65,12 @@ public final class DatabaseContract {
 
 				public static final String ID = "id";
 				public static final String NOMBRE = "nombre";
-				public static final String DESCRIPCION = "descripcion";
-				public static final String TIPO = "tipo"; // diario, semanal, quincenal
-				public static final String FRECUENCIA = "frecuencia_dias"; // Intervalo de días (1, 7, 15, 30)
-				public static final String CUOTAS_TOTALES = "cuotas_totales"; // El número fijo de cuotas a generar (24, 30, 4, 2, 1)
-				public static final String SALTO_DOMINGO = "salto_domingo"; // Booleano (0 o 1) para la excepción de 24 días
-				public static final String METODO_AMORTIZACION = "metodo_amortizacion"; 
+				public static final String TIPO = "tipo";
+				public static final String FRECUENCIA = "frecuencia_dias";
+				public static final String CUOTAS_TOTALES = "cuotas_totales";
+				public static final String NUMERO_MESES = "numero_meses";
+				public static final String SALTO_DOMINGO = "salto_domingo";
 				public static final String CREADO_TS = "creado_ts";
-
-				// Constantes para METODO_AMORTIZACION
-				public static final String METODO_LINEAL_TOTAL = "LINEAL_TOTAL"; // Cuota fija, amortiza Capital + Interés (para 24, 30, Semanal, Quincenal)
-				public static final String METODO_SOLO_INTERES = "SOLO_INTERES"; // Cuota solo del interés devengado (para Variable)
 			}
 
 		// ============================

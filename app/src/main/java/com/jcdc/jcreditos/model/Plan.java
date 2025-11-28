@@ -3,13 +3,33 @@ package com.jcdc.jcreditos.model;
 public class Plan {
 		private int id;
 		private String nombre;
-		private String descripcion;
+		private int interes;
 		private String tipo; // DIARIO, SEMANAL, etc.
 		private int frecuencia; // Cuántos días/semanas entre cuotas
 		private int cuotasTotales;
-		private int saltoDomingo; // 0 o 1
-		private String metodoAmortizacion; // FRANCES, ALEMAN
+		private int numeroMeses; // 
+		private int saltoDomingo; 
 		private String creadoTs;
+
+		public void setSaltoDomingo(int saltoDomingo)
+			{
+				this.saltoDomingo = saltoDomingo;
+			}
+
+		public int getSaltoDomingo()
+			{
+				return saltoDomingo;
+			}
+
+		public void setInteres(int interes)
+			{
+				this.interes = interes;
+			}
+
+		public int getInteres()
+			{
+				return interes;
+			}
 
 		// Constructor, Getters y Setters...
 
@@ -32,16 +52,6 @@ public class Plan {
 		public String getNombre()
 			{
 				return nombre;
-			}
-
-		public void setDescripcion(String descripcion)
-			{
-				this.descripcion = descripcion;
-			}
-
-		public String getDescripcion()
-			{
-				return descripcion;
 			}
 
 		public void setTipo(String tipo)
@@ -74,24 +84,14 @@ public class Plan {
 				return cuotasTotales;
 			}
 
-		public void setSaltoDomingo(int saltoDomingo)
+		public void setNumeroMeses(int numeroMeses)
 			{
-				this.saltoDomingo = saltoDomingo;
+				this.numeroMeses = numeroMeses;
 			}
 
-		public int getSaltoDomingo()
+		public int getNumeroMeses()
 			{
-				return saltoDomingo;
-			}
-
-		public void setMetodoAmortizacion(String metodoAmortizacion)
-			{
-				this.metodoAmortizacion = metodoAmortizacion;
-			}
-
-		public String getMetodoAmortizacion()
-			{
-				return metodoAmortizacion;
+				return numeroMeses;
 			}
 
 		public void setCreadoTs(String creadoTs)

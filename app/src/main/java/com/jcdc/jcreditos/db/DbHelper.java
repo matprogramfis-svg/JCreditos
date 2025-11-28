@@ -51,15 +51,14 @@ public class DbHelper extends SQLiteOpenHelper {
 					"CREATE TABLE " + DatabaseContract.Planes.TABLE + " (" +
 					DatabaseContract.Planes.ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
 					DatabaseContract.Planes.NOMBRE + " TEXT NOT NULL, " +
-					DatabaseContract.Planes.DESCRIPCION + " TEXT, " +
 					DatabaseContract.Planes.TIPO + " TEXT NOT NULL, " +
 					DatabaseContract.Planes.FRECUENCIA + " INTEGER NOT NULL, " +
 					DatabaseContract.Planes.CUOTAS_TOTALES + " INTEGER NOT NULL, " +
+					DatabaseContract.Planes.NUMERO_MESES + " INTEGER DEFAULT 1, " +
 					DatabaseContract.Planes.SALTO_DOMINGO + " INTEGER DEFAULT 0, " +
-					DatabaseContract.Planes.METODO_AMORTIZACION + " TEXT NOT NULL, " +
 					DatabaseContract.Planes.CREADO_TS + " DATETIME DEFAULT (datetime('now','localtime'))" +
 					");"
-				);
+				);;
 
 				// ============================
 				// TABLA CREDITOS

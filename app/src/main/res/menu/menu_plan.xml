@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item 
+		android:id="@+id/itmVolver"
+		android:title="Volver"
+        android:orderInCategory="1"
+        android:showAsAction="ifRoom" />
+	
+	<item 
+		android:id="@+id/itmEliminarPlan"
+		android:title="Eliminar Plan"
+        android:orderInCategory="1"
+        android:showAsAction="never" />
+    
+</menu>

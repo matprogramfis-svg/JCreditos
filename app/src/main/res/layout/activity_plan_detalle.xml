@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- NOMBRE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Plan"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_plan_nombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:hint="Ej: Plan 24 Cuotas" />
+
+        <!-- FRECUENCIA (dias) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Frecuencia (días)"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_plan_frecuencia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="1, 7, 15, 30" />
+
+        <!-- TIPO -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tipo de Plan"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <Spinner
+            android:id="@+id/sp_plan_tipo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- CUOTAS TOTALES -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cuotas Totales"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp" />
+        <EditText
+            android:id="@+id/et_plan_cuotas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="Ej: 24 o 30" />
+
+        <!-- NUMERO DE MESES -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Duración (meses)"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_plan_num_meses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="1, 2, 3..." />
+
+        <!-- SALTAR DOMINGOS -->
+        <CheckBox
+            android:id="@+id/chk_plan_salto_domingo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Saltar domingos" />
+
+        <!-- GUARDAR -->
+        <Button
+            android:id="@+id/btn_plan_guardar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GUARDAR PLAN"
+            android:layout_marginTop="20dp" />
+
+        <!-- ELIMINAR -->
+        <Button
+            android:id="@+id/btn_plan_eliminar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ELIMINAR PLAN"
+            android:background="@android:color/holo_red_light"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp" />
+
+    </LinearLayout>
+</ScrollView>

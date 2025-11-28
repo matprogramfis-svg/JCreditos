@@ -1,114 +1,129 @@
 package com.jcdc.jcreditos.dao;
 
 import android.content.*;
-import android.database.*;
-import android.database.sqlite.*;
-import com.jcdc.jcreditos.db.*;
-import com.jcdc.jcreditos.model.*;
-import java.util.*;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import com.jcdc.jcreditos.db.DatabaseContract;
+import com.jcdc.jcreditos.db.DbHelper;
+import com.jcdc.jcreditos.model.Plan;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlanesDao {
 
-		private final DbHelper dbHelper; // Ya lo tienes
-		private final Context context;    // <<< NECESITAS ESTA VARIABLE
+		private DbHelper dbHelper;
 
-		public PlanesDao(Context context) {
-				this.context = context; // <<< GUARDA EL CONTEXTO
-				this.dbHelper = new DbHelper(context);
+		public PlanesDao(Context ctx) {
+				dbHelper = new DbHelper(ctx);
 			}
 
-		// --- Auxiliar: Mapea Cursor a Plan POJO ---
-		private Plan cursorToPlan(Cursor cursor) {
-				Plan plan = new Plan();
-				plan.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.ID)));
-				plan.setNombre(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.NOMBRE)));
-				plan.setDescripcion(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.DESCRIPCION)));
-				plan.setTipo(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.TIPO)));
-				plan.setFrecuencia(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.FRECUENCIA)));
-				plan.setCuotasTotales(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.CUOTAS_TOTALES)));
-				plan.setSaltoDomingo(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.SALTO_DOMINGO)));
-				plan.setMetodoAmortizacion(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.METODO_AMORTIZACION)));
-				plan.setCreadoTs(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Planes.CREADO_TS)));
-				return plan;
+		// ============================
+		// INSERTAR
+		// ============================
+		public long insertPlan(Plan plan) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Planes.NOMBRE, plan.getNombre());
+				values.put(DatabaseContract.Planes.TIPO, plan.getTipo());
+				values.put(DatabaseContract.Planes.FRECUENCIA, plan.getFrecuencia());
+				values.put(DatabaseContract.Planes.CUOTAS_TOTALES, plan.getCuotasTotales());
+				values.put(DatabaseContract.Planes.NUMERO_MESES, plan.getNumeroMeses());
+				values.put(DatabaseContract.Planes.SALTO_DOMINGO, plan.getSaltoDomingo());
+
+				return db.insert(DatabaseContract.Planes.TABLE, null, values);
 			}
 
-		// --- Obtener Plan por ID (Retorna POJO) ---
+		// ============================
+		// ACTUALIZAR
+		// ============================
+		public int updatePlan(Plan plan) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Planes.NOMBRE, plan.getNombre());
+				values.put(DatabaseContract.Planes.TIPO, plan.getTipo());
+				values.put(DatabaseContract.Planes.FRECUENCIA, plan.getFrecuencia());
+				values.put(DatabaseContract.Planes.CUOTAS_TOTALES, plan.getCuotasTotales());
+				values.put(DatabaseContract.Planes.NUMERO_MESES, plan.getNumeroMeses());
+				values.put(DatabaseContract.Planes.SALTO_DOMINGO, plan.getSaltoDomingo());
+
+				String where = DatabaseContract.Planes.ID + "=?";
+				String[] args = { String.valueOf(plan.getId()) };
+
+				return db.update(DatabaseContract.Planes.TABLE, values, where, args);
+			}
+
+		// ============================
+		// ELIMINAR
+		// ============================
+		public int deletePlan(int id) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				return db.delete(DatabaseContract.Planes.TABLE,
+								 DatabaseContract.Planes.ID + "=?",
+								 new String[]{String.valueOf(id)});
+			}
+
+		// ============================
+		// OBTENER POR ID
+		// ============================
 		public Plan getPlanById(int id) {
-				Plan plan = null;
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-				String selection = DatabaseContract.Planes.ID + " = ?";
-				String[] selectionArgs = { String.valueOf(id) };
+				Cursor c = db.query(
+					DatabaseContract.Planes.TABLE,
+					null,
+					DatabaseContract.Planes.ID + "=?",
+					new String[]{String.valueOf(id)},
+					null, null, null
+				);
 
-				Cursor cursor = db.query(DatabaseContract.Planes.TABLE, null, selection, selectionArgs, null, null, null);
-
-				if (cursor.moveToFirst()) {
-						plan = cursorToPlan(cursor);
+				if (c != null && c.moveToFirst()) {
+						Plan p = cursorToPlan(c);
+						c.close();
+						return p;
 					}
-
-				cursor.close();
-				db.close();
-				return plan;
+				return null;
 			}
 
-		// --- Obtener todos los Planes (Retorna Lista de POJOs) ---
+		// ============================
+		// LISTAR TODOS
+		// ============================
 		public List<Plan> getAllPlanes() {
 				List<Plan> lista = new ArrayList<>();
+
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor c = db.query(DatabaseContract.Planes.TABLE,
+									null, null, null, null, null,
+									DatabaseContract.Planes.NOMBRE + " ASC");
 
-				String sortOrder = DatabaseContract.Planes.NOMBRE + " ASC";
-
-				Cursor cursor = db.query(DatabaseContract.Planes.TABLE, null, null, null, null, null, sortOrder);
-
-				if (cursor.moveToFirst()) {
+				if (c != null && c.moveToFirst()) {
 						do {
-								lista.add(cursorToPlan(cursor));
-							} while (cursor.moveToNext());
+								lista.add(cursorToPlan(c));
+							} while (c.moveToNext());
+						c.close();
 					}
 
-				cursor.close();
-				db.close();
 				return lista;
 			}
-		// ***
-		// --- Insertar Plan ---
-		public long insertPlan(Plan plan) {
-				SQLiteDatabase db = new DbHelper(context).getWritableDatabase();
 
-				ContentValues values = new ContentValues();
-				values.put(DatabaseContract.Planes.NOMBRE, plan.getNombre());
-				values.put(DatabaseContract.Planes.DESCRIPCION, plan.getDescripcion());
-				values.put(DatabaseContract.Planes.TIPO, plan.getTipo());
-				values.put(DatabaseContract.Planes.FRECUENCIA, plan.getFrecuencia());
-				values.put(DatabaseContract.Planes.CUOTAS_TOTALES, plan.getCuotasTotales());
-				values.put(DatabaseContract.Planes.SALTO_DOMINGO, plan.getSaltoDomingo());
-				values.put(DatabaseContract.Planes.METODO_AMORTIZACION, plan.getMetodoAmortizacion());
+		// ============================
+		// MAPEAR CURSOR → OBJETO
+		// ============================
+		private Plan cursorToPlan(Cursor c) {
+				Plan p = new Plan();
 
-				long newRowId = db.insert(DatabaseContract.Planes.TABLE, null, values);
-				db.close();
-				return newRowId;
+				p.setId(c.getInt(c.getColumnIndex(DatabaseContract.Planes.ID)));
+				p.setNombre(c.getString(c.getColumnIndex(DatabaseContract.Planes.NOMBRE)));
+				//p.setInteres(c.getInt(c.getColumnIndex(DatabaseContract.Planes.INTERES)));
+				p.setTipo(c.getString(c.getColumnIndex(DatabaseContract.Planes.TIPO)));
+				p.setFrecuencia(c.getInt(c.getColumnIndex(DatabaseContract.Planes.FRECUENCIA)));
+				p.setCuotasTotales(c.getInt(c.getColumnIndex(DatabaseContract.Planes.CUOTAS_TOTALES)));
+				p.setNumeroMeses(c.getInt(c.getColumnIndex(DatabaseContract.Planes.NUMERO_MESES)));
+				p.setSaltoDomingo(c.getInt(c.getColumnIndex(DatabaseContract.Planes.SALTO_DOMINGO)));
+
+				return p;
 			}
-		// ***
-		// --- Actualizar Plan ---
-		public int updatePlan(Plan plan) {
-				SQLiteDatabase db = new DbHelper(context).getWritableDatabase();
-
-				ContentValues values = new ContentValues();
-				values.put(DatabaseContract.Planes.NOMBRE, plan.getNombre());
-				values.put(DatabaseContract.Planes.DESCRIPCION, plan.getDescripcion());
-				values.put(DatabaseContract.Planes.TIPO, plan.getTipo());
-				values.put(DatabaseContract.Planes.FRECUENCIA, plan.getFrecuencia());
-				values.put(DatabaseContract.Planes.CUOTAS_TOTALES, plan.getCuotasTotales());
-				values.put(DatabaseContract.Planes.SALTO_DOMINGO, plan.getSaltoDomingo());
-				values.put(DatabaseContract.Planes.METODO_AMORTIZACION, plan.getMetodoAmortizacion());
-
-				String selection = DatabaseContract.Planes.ID + " = ?";
-				String[] selectionArgs = { String.valueOf(plan.getId()) };
-
-				int count = db.update(DatabaseContract.Planes.TABLE, values, selection, selectionArgs);
-				db.close();
-				return count;
-				}
-			
-			
 	}
