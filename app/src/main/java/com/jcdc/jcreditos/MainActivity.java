@@ -29,7 +29,7 @@ public class MainActivity extends Activity implements OnClickListener
 							startActivity(nuevo);	
 							break;
 						case R.id.btn_cliente:	
-							Intent clie = new Intent(this,ListaClientesActivity.class);
+							Intent clie = new Intent(this,ClientesActivity.class);
 							startActivity(clie);	
 							break;
 						case R.id.btn_credito:	

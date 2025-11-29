@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- NOMBRE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre del Cliente"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_cliente_nombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"
+            android:hint="nombre cliente" />
+
+        <!-- CI -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CI"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_cliente_ci"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"/>
+
+        <!-- TELEFONO -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Telefono"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_cliente_telefono"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" 
+			android:inputType="number"/>
+
+        <!-- DIRECCION -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Direccion"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp" />
+        <EditText
+            android:id="@+id/et_cliente_direccion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords"/>
+
+        <!-- GARANTIA -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Garantia"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/et_cliente_garantia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords" />
+
+        <!-- GUARDAR -->
+        <Button
+            android:id="@+id/btn_cliente_guardar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GUARDAR CLIENTE"
+            android:layout_marginTop="20dp" />
+
+        <!-- ELIMINAR -->
+        <Button
+            android:id="@+id/btn_cliente_eliminar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ELIMINAR CLIENTE"
+            android:background="@android:color/holo_red_light"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp" />
+
+    </LinearLayout>
+</ScrollView>

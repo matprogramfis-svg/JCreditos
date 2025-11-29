@@ -21,6 +21,8 @@
 		<activity android:name=".ui.PlanesActivity"/>
 		<activity android:name=".ui.PlanDetalleActivity" />
 		<activity android:name=".ui.ClienteActivity" />
+		<activity android:name=".ui.ClientesActivity" />
+		<activity android:name=".ui.ClienteDetalleActivity" />
 		<activity android:name=".ui.ListaClientesActivity" />
     </application>
 
