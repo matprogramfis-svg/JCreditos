@@ -33,9 +33,9 @@ public class MainActivity extends Activity implements OnClickListener
 							startActivity(clie);	
 							break;
 						case R.id.btn_credito:	
-							//Intent clie = new Intent(this,ListaClientesActivity.class);
+							Intent crd = new Intent(this,CreditosActivity.class);
 							//plan.putExtra("stIdCr","");
-							//startActivity(clie);	
+							startActivity(crd);	
 							break;
 					}
 				// Iniciar la Activity de gestión de planes

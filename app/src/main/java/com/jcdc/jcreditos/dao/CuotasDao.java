@@ -101,4 +101,31 @@ public class CuotasDao {
 			}
 
 		// *** Faltarían métodos para insertar las cuotas (usado al crear un crédito) ***
+		/**
+		 * Inserta una única cuota en la base de datos.
+		 * Este método está diseñado para ser llamado dentro de una transacción por CreditosDao.
+		 * @param db La instancia de SQLiteDatabase (debe ser la misma que maneja la transacción).
+		 * @param cuota Objeto Cuota a insertar.
+		 * @return El ID de la fila insertada o -1 en caso de error.
+		 */
+		public long insertCuota(SQLiteDatabase db, Cuota cuota) {
+				ContentValues values = new ContentValues();
+
+				// Asignar los valores a la tabla CUOTAS
+				values.put(DatabaseContract.Cuotas.CREDITO_ID, cuota.getCreditoId());
+				values.put(DatabaseContract.Cuotas.NUMERO_CUOTA, cuota.getNumeroCuota());
+				values.put(DatabaseContract.Cuotas.MONTO_CUOTA, cuota.getMontoCuota());
+				values.put(DatabaseContract.Cuotas.FECHA_PAGO, cuota.getFechaPago());
+				//values.put(DatabaseContract.Cuotas.PAGADA, cuota.isPagada()); // O 0 si no se setea
+				// CORRECCIÓN: Usar getPagada() para obtener el valor INT (0 o 1)
+				values.put(DatabaseContract.Cuotas.PAGADA, cuota.getPagada());
+
+				// Nota: PAGADA_TS y CREADO_TS se manejan por defecto o en el trigger.
+
+				// Realizar la inserción. No se cierra la DB aquí.
+				long rowId = db.insert(DatabaseContract.Cuotas.TABLE, null, values);
+
+				return rowId;
+			}
+		
 	}

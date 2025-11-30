@@ -1,100 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="8dp"
-    tools:context=".CreditoDetalleActivity">
+    android:layout_height="match_parent">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#D1F2EB"
-        android:padding="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Detalles del Crédito"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:background="#F5F5F5">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Saldo Total: "
+                android:text="Cliente (*)"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"/>
+                android:textColor="#333333"/>
+
+            <EditText
+                android:id="@+id/et_cliente_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Buscar por nombre o CI..."
+                android:inputType="textCapWords"
+                android:background="@android:drawable/ic_menu_edit"
+                android:padding="10dp"
+                android:layout_marginBottom="8dp"/>
+
+            <View
+                android:id="@+id/separator_cliente"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#CCCCCC"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"/>
 
             <TextView
-                android:id="@+id/tv_saldo_total"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="480.00"
-                android:textSize="16sp"
-                android:textColor="@android:color/holo_red_dark"/>
+                android:text="Plan de Crédito (*)"
+                android:textStyle="bold"
+                android:textColor="#333333"/>
+            <Spinner
+                android:id="@+id/sp_plan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:spinnerMode="dialog"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Datos Financieros"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/et_capital"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Capital (Bs.)"
+                    android:inputType="numberDecimal"
+                    android:layout_marginEnd="8dp"/>
+
+                <EditText
+                    android:id="@+id/et_tasa_interes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Tasa (%)"
+                    android:inputType="numberDecimal"/>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/et_fecha_inicio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Fecha de Desembolso"
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Interés Calculado:"
+                android:paddingTop="4dp"/>
+            <TextView
+                android:id="@+id/tv_interes_monto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bs. 0.00"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#FF6600"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TOTAL a Pagar:"
+                android:paddingTop="4dp"/>
+            <TextView
+                android:id="@+id/tv_total_credito"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bs. 0.00"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#006600"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/tv_cuotas_titulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Detalle de Cuotas"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingTop="16dp"
+                android:visibility="gone"/>
+
+            <ListView
+                android:id="@+id/lv_cuotas"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:background="@android:color/white"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"/>
+
+            <Button
+                android:id="@+id/btn_guardar_credito"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="GUARDAR CRÉDITO"/>
+
         </LinearLayout>
+    </ScrollView>
 
-	</LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
-
-    <LinearLayout
+    <ListView
+        android:id="@+id/lv_sugerencias_clientes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_alignStart="@+id/et_cliente_nombre"
+        android:layout_alignEnd="@+id/et_cliente_nombre"
+        android:layout_below="@+id/et_cliente_nombre"
+        android:background="@android:color/white"
+        android:maxHeight="200dp"
+        android:elevation="4dp"
+        android:visibility="gone" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp"
-            android:weightSum="3"
-            android:background="#CCCCCC"> <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="N°"
-                android:textStyle="bold"
-                android:gravity="center" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.5"
-                android:text="Fecha"
-                android:textStyle="bold"
-                android:gravity="center" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:text="Cuota"
-                android:textStyle="bold"
-                android:gravity="end" />
-        </LinearLayout>
-
-        <ListView
-            android:id="@+id/listview_cuotas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:divider="@android:color/darker_gray"
-            android:dividerHeight="1dp"/>
-
-    </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

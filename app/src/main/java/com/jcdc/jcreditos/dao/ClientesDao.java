@@ -1,16 +1,12 @@
 package com.jcdc.jcreditos.dao;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-
-import com.jcdc.jcreditos.db.DatabaseContract;
-import com.jcdc.jcreditos.db.DbHelper;
-import com.jcdc.jcreditos.model.Cliente; // Importamos el POJO
-
-import java.util.ArrayList;
-import java.util.List;
+import android.content.*;
+import android.database.*;
+import android.database.sqlite.*;
+import android.util.*;
+import com.jcdc.jcreditos.db.*;
+import com.jcdc.jcreditos.model.*;
+import java.util.*;
 
 public class ClientesDao {
 
@@ -135,5 +131,50 @@ public class ClientesDao {
 				);
 				db.close();
 				return count; 
+			}
+			
+		// Dentro de ClientesDao.java
+
+		/**
+		 * Busca clientes cuyo nombre o CI contenga la cadena de búsqueda.
+		 * @param query Cadena de búsqueda.
+		 * @return Lista de objetos Cliente que coinciden.
+		 */
+		public List<Cliente> searchClientes(String query) {
+				List<Cliente> clientesList = new ArrayList<>();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor cursor = null;
+
+				// La cláusula WHERE para buscar en NOMBRE o CI (LIKE '%query%')
+				String selection = DatabaseContract.Clientes.NOMBRE + " LIKE ? OR " + 
+					DatabaseContract.Clientes.CI + " LIKE ?";
+				String[] selectionArgs = new String[]{ "%" + query + "%", "%" + query + "%" };
+
+				try {
+						cursor = db.query(
+							DatabaseContract.Clientes.TABLE,
+							null,
+							selection,
+							selectionArgs,
+							null, null, null
+						);
+
+						if (cursor.moveToFirst()) {
+								do {
+										// Debes tener un método auxiliar cursorToCliente(cursor) en ClientesDao
+										Cliente cliente = cursorToCliente(cursor); 
+										clientesList.add(cliente);
+									} while (cursor.moveToNext());
+							}
+
+					} catch (Exception e) {
+						Log.e("ClientesDao", "Error al buscar clientes: " + e.getMessage());
+					} finally {
+						if (cursor != null) {
+								cursor.close();
+							}
+						db.close();
+					}
+				return clientesList;
 			}
 	}

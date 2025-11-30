@@ -9,23 +9,25 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="CLIENTES ACTIVOS"
-		android:textSize="20sp"
-		android:paddingBottom="16dp"
-		android:gravity="center"/>
-	
+		android:text="Gestión de Créditos"
+		android:textSize="24sp"
+		android:textStyle="bold"
+		android:gravity="center"
+		android:paddingBottom="16dp"/>
+
 	<Button
-		android:id="@+id/btn_nuevo_cliente"
+		android:id="@+id/btn_agregar_credito"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="16dp"
-		android:text="+ Agregar Nuevo Cliente"/>
+		android:text="+ AGREGAR NUEVO CRÉDITO"
+		android:layout_marginBottom="16dp"/>
 
 	<ListView
-		android:id="@+id/lv_clientes"
+		android:id="@+id/listview_creditos"
 		android:layout_width="match_parent"
-		android:layout_height="0dp"
-		android:layout_weight="1"/>
+		android:layout_height="match_parent"
+		android:divider="#CFCFCF"
+		android:dividerHeight="1dp"/>
 
 </LinearLayout>
 

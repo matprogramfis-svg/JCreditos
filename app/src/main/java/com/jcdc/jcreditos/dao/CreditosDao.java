@@ -1,39 +1,35 @@
 package com.jcdc.jcreditos.dao;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
-import com.jcdc.jcreditos.db.DatabaseContract;
-import com.jcdc.jcreditos.db.DbHelper;
-import com.jcdc.jcreditos.model.Credito;
-import com.jcdc.jcreditos.model.Plan;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-
-// ... otros imports ...
-import android.database.Cursor;
-
-import com.jcdc.jcreditos.db.DatabaseContract; // Necesario para los nombres de las columnas
-import com.jcdc.jcreditos.model.Credito; // Necesario para el POJO Credito
+import android.content.*;
+import android.database.*;
+import android.database.sqlite.*;
+import android.util.*;
+import com.jcdc.jcreditos.db.*;
+import com.jcdc.jcreditos.model.*;
+import java.text.*;
+import java.util.*; // Necesario para el POJO Credito
 
 public class CreditosDao {
 
 		private DbHelper dbHelper;
 		private PlanesDao planesDao; // Necesario para obtener la información del Plan
+		
+		// 💡 NUEVA VARIABLE: Instancia de CuotasDao
+		private CuotasDao cuotasDao;
 
 		// Formato estándar para almacenar y leer fechas en SQLite (TEXT)
 		private static final String DATE_FORMAT = "yyyy-MM-dd";
 		private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+		
+		// Nombres de columna auxiliares para la unión (para evitar conflictos)
+		private static final String COL_NOMBRE_CLIENTE_ALIAS = "nombre_cliente_alias";
+		private static final String COL_NOMBRE_PLAN_ALIAS = "nombre_plan_alias";
 
 		public CreditosDao(Context context) {
 				dbHelper = new DbHelper(context);
 				planesDao = new PlanesDao(context); 
+				// 💡 INICIALIZACIÓN: Inicializar CuotasDao
+				cuotasDao = new CuotasDao(context);
 			}
 
 		/**
@@ -129,13 +125,25 @@ public class CreditosDao {
 						String fechaPago = dateFormat.format(calendar.getTime());
 
 						// 3. INSERTAR CUOTA
-						ContentValues cuotasValues = new ContentValues();
+						/*ContentValues cuotasValues = new ContentValues();
 						cuotasValues.put(DatabaseContract.Cuotas.CREDITO_ID, credito.getId());
 						cuotasValues.put(DatabaseContract.Cuotas.NUMERO_CUOTA, i);
 						cuotasValues.put(DatabaseContract.Cuotas.MONTO_CUOTA, montoPorCuota);
 						cuotasValues.put(DatabaseContract.Cuotas.FECHA_PAGO, fechaPago);
 
 						long cuotaRowId = db.insert(DatabaseContract.Cuotas.TABLE, null, cuotasValues);
+						*/
+						// 3. INSERTAR CUOTA
+						Cuota cuota = new Cuota();
+						cuota.setCreditoId(credito.getId());
+						cuota.setNumeroCuota(i);
+						cuota.setMontoCuota(montoPorCuota);
+						cuota.setFechaPago(fechaPago);
+						cuota.setPagada(0); // Nueva cuota, no pagada
+
+						// LLAMADA AL DAO DE CUOTAS
+						long cuotaRowId = cuotasDao.insertCuota(db, cuota); // Usar el método de CuotasDao
+						
 						if (cuotaRowId < 0) {
 								throw new RuntimeException("Fallo al insertar la cuota número: " + i);
 							}
@@ -205,5 +213,97 @@ public class CreditosDao {
 				credito.setEstado(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.ESTADO)));
 
 				return credito;
+			}
+		// ***
+		/**
+		 * Obtiene la lista de todos los Créditos registrados en la base de datos.
+		 * @return Una lista de objetos Credito.
+		 */
+		/**
+		 * Obtiene todos los Créditos junto con el nombre del Cliente y el nombre del Plan.
+		 * @return Una lista de objetos Credito.
+		 */
+		public List<Credito> getAllCreditos() {
+				List<Credito> creditosList = new ArrayList<>();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor cursor = null;
+
+				try {
+						String CRED = DatabaseContract.Creditos.TABLE;
+						String CLI = DatabaseContract.Clientes.TABLE;
+						String PLAN = DatabaseContract.Planes.TABLE;
+
+						// Usamos nombres de columnas con alias para distinguir CLIENTE.NOMBRE y PLANES.NOMBRE
+						String selectQuery = 
+							"SELECT " +
+							"T1.*, " + // T1 es la tabla de CREDITOS (trae todas las columnas originales)
+							"T2." + DatabaseContract.Clientes.NOMBRE + " AS " + COL_NOMBRE_CLIENTE_ALIAS + ", " + 
+							"T3." + DatabaseContract.Planes.NOMBRE + " AS " + COL_NOMBRE_PLAN_ALIAS + 
+							" FROM " + CRED + " T1 " +
+							// INNER JOIN para Cliente
+							"INNER JOIN " + CLI + " T2 ON T1." + DatabaseContract.Creditos.CLIENTE_ID + " = T2." + DatabaseContract.Clientes.ID + " " +
+							// INNER JOIN para Plan
+							"INNER JOIN " + PLAN + " T3 ON T1." + DatabaseContract.Creditos.PLAN_ID + " = T3." + DatabaseContract.Planes.ID + " " +
+							"ORDER BY T1." + DatabaseContract.Creditos.CREADO_TS + " DESC";
+
+						cursor = db.rawQuery(selectQuery, null);
+
+						if (cursor.moveToFirst()) {
+								do {
+										Credito credito = cursorToCredito(cursor);
+
+										// Asignar los campos extra del JOIN
+										credito.setNombreCliente(cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE_CLIENTE_ALIAS)));
+										credito.setNombrePlan(cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE_PLAN_ALIAS)));
+
+										creditosList.add(credito);
+									} while (cursor.moveToNext());
+							}
+
+					} catch (Exception e) {
+						Log.e("CreditosDao", "Error en getAllCreditos con JOIN: " + e.getMessage());
+					} finally {
+						if (cursor != null) {
+								cursor.close();
+							}
+						db.close();
+					}
+
+				return creditosList;
+			}
+		/**
+		 * Actualiza la información principal de un crédito existente.
+		 * Nota: La actualización de un crédito no regenera las cuotas automáticamente.
+		 * @param credito Objeto Credito con los nuevos datos.
+		 * @return Número de filas afectadas (1 si fue exitoso, 0 si no).
+		 */
+		public int updateCredito(Credito credito) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				ContentValues values = new ContentValues();
+
+				// Asignar los valores actualizables (excluyendo CREADO_TS, ID)
+				values.put(DatabaseContract.Creditos.CLIENTE_ID, credito.getClienteId());
+				values.put(DatabaseContract.Creditos.PLAN_ID, credito.getPlanId());
+				values.put(DatabaseContract.Creditos.CAPITAL, credito.getCapital());
+				values.put(DatabaseContract.Creditos.INTERES_PORCENTAJE, credito.getInteresPorcentaje());
+				values.put(DatabaseContract.Creditos.INTERES_MONTO, credito.getInteresMonto());
+				values.put(DatabaseContract.Creditos.TOTAL, credito.getTotal());
+				values.put(DatabaseContract.Creditos.FECHA_INICIO, credito.getFechaInicio());
+				values.put(DatabaseContract.Creditos.ESTADO, credito.getEstado());
+
+				// Cláusula WHERE para asegurar que solo se actualice el registro correcto
+				String selection = DatabaseContract.Creditos.ID + " = ?";
+				String[] selectionArgs = { String.valueOf(credito.getId()) };
+
+				// Ejecutar la actualización
+				int rowsAffected = db.update(
+					DatabaseContract.Creditos.TABLE,
+					values,
+					selection,
+					selectionArgs
+				);
+
+				db.close();
+				return rowsAffected;
 			}
 	}

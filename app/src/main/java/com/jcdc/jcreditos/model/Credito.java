@@ -16,6 +16,17 @@ public class Credito {
 		// (Omito la implementación de Getters/Setters para ahorrar espacio, pero debes incluirlos)
 		// ...
 		// ...
+		// Dentro de com.jcdc.jcreditos.model.Credito.java
+// ...
+		private String nombreCliente;
+		private String nombrePlan;
+
+// --- GETTERS Y SETTERS ---
+		public String getNombreCliente() { return nombreCliente; }
+		public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
+		public String getNombrePlan() { return nombrePlan; }
+		public void setNombrePlan(String nombrePlan) { this.nombrePlan = nombrePlan; }
+// ...
 
 
 		public void setId(int id)
