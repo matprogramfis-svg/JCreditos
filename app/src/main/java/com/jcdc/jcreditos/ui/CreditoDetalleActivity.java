@@ -8,6 +8,7 @@ import android.widget.*;
 import com.jcdc.jcreditos.*;
 import com.jcdc.jcreditos.dao.*;
 import com.jcdc.jcreditos.model.*;
+import java.text.*;
 import java.util.*;
 
 public class CreditoDetalleActivity extends Activity {
@@ -119,7 +120,10 @@ public class CreditoDetalleActivity extends Activity {
 						// Modo Creación
 						setTitle("Nuevo Crédito");
 						// Inicializar fecha de inicio a hoy
-						// etFechaInicio.setText(dateFormat.format(new Date()));
+							// 💡 IMPLEMENTACIÓN DE FECHA ACTUAL
+							SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
+							String fechaHoy = dateFormat.format(new Date()); // Asume que tienes importado java.util.Date
+							etFechaInicio.setText(fechaHoy);
 					}
 			}
 			
@@ -250,24 +254,79 @@ public class CreditoDetalleActivity extends Activity {
 
 		// Método basado en Premisa 3
 		private void setupCalculationListeners() {
-				// Implementar TextWatchers en etCapital y etTasaInteres, y OnItemSelectedListener en spPlan
-				// para llamar a calcularTotales() cada vez que los valores cambien.
+				// 1. Listener para Capital y Tasa (al escribir)
+				TextWatcher textWatcher = new TextWatcher() {
+						@Override
+						public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+						@Override
+						public void onTextChanged(CharSequence s, int start, int before, int count) {
+								calcularTotales();
+							}
+						@Override
+						public void afterTextChanged(Editable s) {}
+					};
+
+				etCapital.addTextChangedListener(textWatcher);
+				etTasaInteres.addTextChangedListener(textWatcher);
+
+				// 2. Listener para el Plan (al seleccionar)
+				spPlan.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+							@Override
+							public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+									calcularTotales();
+								}
+							@Override
+							public void onNothingSelected(AdapterView<?> parent) {
+									// No hacer nada
+								}
+						});
 			}
 
 		// Método de Cálculo (Lógica de Negocio)
 		private void calcularTotales() {
-				// Lógica de cálculo:
-				/*
-				 double capital = parse(etCapital);
-				 double tasa = parse(etTasaInteres);
+				// 1. Obtener valores y validar
+				double capital;
+				double interesPorcentaje;
 
-				 // Simple: Interés = Capital * Tasa * Plazo(en años) -- Depende de la lógica de tu plan.
-				 double interesMonto = capital * (tasa / 100); 
-				 double total = capital + interesMonto;
+				try {
+						capital = Double.parseDouble(etCapital.getText().toString());
+						interesPorcentaje = Double.parseDouble(etTasaInteres.getText().toString());
+					} catch (NumberFormatException e) {
+						// Si no son números válidos, ponemos 0.00 en los resultados
+						tvInteresMonto.setText("Bs. 0.00");
+						tvTotalCredito.setText("Bs. 0.00");
+						return;
+					}
 
-				 tvInteresMonto.setText(String.format("%.2f", interesMonto));
-				 tvTotalCredito.setText(String.format("%.2f", total));
-				 */
+				Plan planSeleccionado = (Plan) spPlan.getSelectedItem();
+				if (planSeleccionado == null) {
+						// Si no hay plan seleccionado, no podemos calcular
+						return;
+					}
+
+				// 2. Lógica de Cálculo (Interés simple sobre el capital)
+
+				// Ejemplo: Si la tasa es 20%, el interés total es 20% del capital.
+				double interesMonto = capital * (interesPorcentaje / 100.0); 
+
+				// Si tu lógica incluye el número de cuotas, tendrías que calcularlo así:
+				// int cuotas = planSeleccionado.getCuotasTotales(); 
+				// Si el interés es por mes, la fórmula sería más compleja. 
+
+				double totalAPagar = capital + interesMonto;
+
+				// 3. Mostrar Resultados (Formatear a 2 decimales)
+				tvInteresMonto.setText("Bs. " + String.format("%.2f", interesMonto));
+				tvTotalCredito.setText("Bs. " + String.format("%.2f", totalAPagar));
+
+				// 4. (Opcional) Guardar los valores calculados en el objeto Credito actual
+				if (creditoActual == null) {
+						creditoActual = new Credito();
+					}
+				creditoActual.setCapital(capital);
+				creditoActual.setInteresPorcentaje(interesPorcentaje);
+				creditoActual.setInteresMonto(interesMonto);
+				creditoActual.setTotal(totalAPagar);
 			}
 
 		// ... (Métodos de Menú/ActionBar similares a PlanesActivity)

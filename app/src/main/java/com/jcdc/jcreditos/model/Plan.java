@@ -102,4 +102,15 @@ public class Plan {
 		public String getCreadoTs()
 			{
 				return creadoTs;
-			}}
+			}
+		/**
+		* Devuelve la representación en cadena del objeto Plan.
+		* Esto es utilizado por ArrayAdapter para mostrar el objeto en Spinners y ListViews.
+		*/
+		@Override
+		public String toString() {
+				// Asumiendo que 'nombre' es el campo que almacena el nombre del plan
+				return this.nombre;
+			}
+			
+		}
