@@ -6,6 +6,7 @@ import android.text.*;
 import android.view.*;
 import android.widget.*;
 import com.jcdc.jcreditos.*;
+import com.jcdc.jcreditos.adapter.*;
 import com.jcdc.jcreditos.dao.*;
 import com.jcdc.jcreditos.model.*;
 import java.text.*;
@@ -13,9 +14,15 @@ import java.util.*;
 
 public class CreditoDetalleActivity extends Activity {
 
+		// Formato que el usuario ingresa/ve
+		private final SimpleDateFormat DISPLAY_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
+		// Formato que la DB (y la lógica interna) requiere
+		private final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 		private CreditosDao creditosDao;
 		private ClientesDao clientesDao; // Necesario para cargar el Spinner de Clientes
 		private PlanesDao planesDao;     // Necesario para cargar el Spinner de Planes
+		// ... en CreditoDetalleActivity.java
+		private CuotasDao cuotasDao;
 
 		// Componentes del Formulario
 		private Spinner spPlan;
@@ -46,6 +53,8 @@ public class CreditoDetalleActivity extends Activity {
 				creditosDao = new CreditosDao(this);
 				clientesDao = new ClientesDao(this);
 				planesDao = new PlanesDao(this);
+				// ... dentro de onCreate()
+				cuotasDao = new CuotasDao(this);
 
 				// 2. Referenciar Vistas
 				setupViews();
@@ -121,8 +130,8 @@ public class CreditoDetalleActivity extends Activity {
 						setTitle("Nuevo Crédito");
 						// Inicializar fecha de inicio a hoy
 							// 💡 IMPLEMENTACIÓN DE FECHA ACTUAL
-							SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
-							String fechaHoy = dateFormat.format(new Date()); // Asume que tienes importado java.util.Date
+							//SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
+							String fechaHoy = DISPLAY_DATE_FORMAT.format(new Date()); // Asume que tienes importado java.util.Date
 							etFechaInicio.setText(fechaHoy);
 					}
 			}
@@ -196,15 +205,25 @@ public class CreditoDetalleActivity extends Activity {
 			}
 
 		// Método basado en Premisa 5
+		// Método basado en Premisa 5 (Ahora implementado)
 		private void loadCuotasList(int id) {
-				// CuotasDao debe tener un método para obtener cuotas por creditoId
-				// List<Cuota> cuotas = cuotasDao.getCuotasByCreditoId(id);
-				// CuotasAdapter adapter = new CuotasAdapter(this, cuotas);
-				// lvCuotas.setAdapter(adapter);
+				// 1. Obtener la lista de cuotas
+				List<Cuota> cuotas = cuotasDao.getCuotasByCreditoId(id);
+
+				// 2. Crear y asignar el adaptador
+				CuotasAdapter adapter = new CuotasAdapter(this, cuotas);
+				lvCuotas.setAdapter(adapter);
+
+				// Si la lista está vacía, ocultar la ListView o mostrar un mensaje
+				if (cuotas.isEmpty()) {
+						lvCuotas.setVisibility(View.GONE);
+					} else {
+						lvCuotas.setVisibility(View.VISIBLE);
+					}
 			}
 
 		// Método basado en Premisa 4 (Lógica de guardado)
-		private void guardarCredito() {
+		/*private void guardarCredito() {
 				// 1. Validación y Extracción de datos del formulario
 				if (etCapital.getText().toString().isEmpty()) {
 						Toast.makeText(this, "Debe ingresar el capital.", Toast.LENGTH_SHORT).show();
@@ -250,8 +269,76 @@ public class CreditoDetalleActivity extends Activity {
 					} else {
 						Toast.makeText(this, "Error al guardar el crédito.", Toast.LENGTH_LONG).show();
 					}
-			}
+			}*/
+		private void guardarCredito() {
+				// 1. Validación y Extracción de datos del formulario
+				String capitalStr = etCapital.getText().toString();
+				String tasaStr = etTasaInteres.getText().toString(); // Asumiendo que tienes un etTasa
+				String fechaInicioStr = etFechaInicio.getText().toString(); // 💡 Obtener la fecha de la UI
+				Date fechaInicioObjeto;
 
+				// Validaciones
+				if (capitalStr.isEmpty()) {
+						Toast.makeText(this, "Debe ingresar el capital.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+
+				// VALIDACIÓN CRUCIAL DEL CLIENTE
+				if (clienteSeleccionadoId == -1) {
+						Toast.makeText(this, "Debe seleccionar un cliente de la lista de sugerencias.", Toast.LENGTH_LONG).show();
+						return;
+					}
+
+				// VALIDACIÓN Y CONVERSIÓN DE LA FECHA
+				try {
+						// 💡 CONVERSIÓN: String (dd/MM/yyyy) -> Date
+						fechaInicioObjeto = DISPLAY_DATE_FORMAT.parse(fechaInicioStr);
+					} catch (ParseException e) {
+						Toast.makeText(this, "Error: El formato de fecha debe ser dd/MM/yyyy.", Toast.LENGTH_LONG).show();
+						e.printStackTrace();
+						return; 
+					}
+
+				// 2. Obtener objetos seleccionados (asumiendo que los Spinners devuelven el POJO)
+				Plan planSeleccionado = (Plan) spPlan.getSelectedItem();
+
+				// 3. Crear o actualizar objeto Credito
+				if (creditoActual == null) {
+						creditoActual = new Credito();
+					}
+
+				// Setear el ID del cliente seleccionado
+				creditoActual.setClienteId(clienteSeleccionadoId);
+				creditoActual.setPlanId(planSeleccionado.getId());
+
+				// Setear los datos financieros
+				creditoActual.setCapital(Double.parseDouble(capitalStr));
+				creditoActual.setInteresPorcentaje(Double.parseDouble(tasaStr)); // Asumiendo setTasa en Credito
+
+				// 💡 ASIGNAR EL OBJETO DATE AL CRÉDITO
+				// Asegúrate de que Credito.java tenga setFechaInicio(Date)
+				creditoActual.setFechaInicio(fechaInicioObjeto);
+
+				// 4. Ejecución de la operación
+				long resultado;
+				if (creditoId == -1) {
+						// CREAR: Usar el método transaccional que inserta y genera cuotas
+						resultado = creditosDao.insertCreditoAndCuotas(creditoActual);
+						Toast.makeText(this, "Crédito Creado!", Toast.LENGTH_SHORT).show();
+					} else {
+						// EDITAR: Solo actualizar el crédito principal (la modificación de cuotas es más compleja)
+						// Ya corregimos el error de updateCredito en el primer turno.
+						resultado = creditosDao.updateCredito(creditoActual); 
+						Toast.makeText(this, "Crédito Actualizado!", Toast.LENGTH_SHORT).show();
+					}
+
+				if (resultado > 0) {
+						setResult(RESULT_OK); // Indicar a CreditosActivity que recargue la lista
+						finish();
+					} else {
+						Toast.makeText(this, "Error al guardar el crédito.", Toast.LENGTH_LONG).show();
+					}
+			}
 		// Método basado en Premisa 3
 		private void setupCalculationListeners() {
 				// 1. Listener para Capital y Tasa (al escribir)

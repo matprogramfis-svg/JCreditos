@@ -5,10 +5,14 @@ import android.database.*;
 import android.database.sqlite.*;
 import com.jcdc.jcreditos.db.*;
 import com.jcdc.jcreditos.model.*;
+import java.text.*;
 import java.util.*;
 
 public class CuotasDao {
 
+		// 💡 FORMATO ESTÁNDAR PARA ALMACENAR EN SQLITE (yyyy-MM-dd)
+		private static final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+		
 		private DbHelper dbHelper;
 
 		public CuotasDao(Context context) {
@@ -68,7 +72,30 @@ public class CuotasDao {
 				cuota.setCreditoId(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.CREDITO_ID)));
 				cuota.setNumeroCuota(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.NUMERO_CUOTA)));
 				cuota.setMontoCuota(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.MONTO_CUOTA)));
-				cuota.setFechaPago(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.FECHA_PAGO)));
+				// 💡 CONVERSIÓN DE Date A String para SQLite
+				// Obtener la fecha de la base de datos (String)
+				String fechaString = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.FECHA_PAGO));
+
+				// Convertir el String de la BD a un objeto Date para el POJO
+				try {
+						// 💡 1. Definir el formato de fecha que usaste al GUARDAR en la DB
+						// Generalmente es "yyyy-MM-dd" o similar. Asegúrate de que este formato
+						// coincida con cómo se guardó la fecha inicialmente.
+						SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US); 
+
+						// 💡 2. Parsear el String para obtener el objeto Date
+						Date fechaObjeto = dbDateFormat.parse(fechaString);
+
+						// 💡 3. Asignar el objeto Date al POJO
+						cuota.setFechaPago(fechaObjeto); 
+
+					} catch (ParseException e) {
+						// Manejar el error si el String no tiene el formato esperado
+						e.printStackTrace();
+						// Opcional: Asignar null si falla la conversión
+						cuota.setFechaPago(null); 
+					}
+				//cuota.setFechaPago(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.FECHA_PAGO)));
 				cuota.setPagada(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.PAGADA)));
 
 				// PAGADA_TS puede ser NULL en la BD
@@ -79,7 +106,7 @@ public class CuotasDao {
 			}
 
 // --- Obtener Todas las Cuotas de un Crédito (Retorna Lista de POJOs) ---
-		public List<Cuota> getCuotasByCreditoId(int creditoId) {
+		/*public List<Cuota> getCuotasByCreditoId(int creditoId) {
 				List<Cuota> lista = new ArrayList<>();
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
 
@@ -98,7 +125,7 @@ public class CuotasDao {
 				cursor.close();
 				db.close();
 				return lista;
-			}
+			}*/
 
 		// *** Faltarían métodos para insertar las cuotas (usado al crear un crédito) ***
 		/**
@@ -115,7 +142,12 @@ public class CuotasDao {
 				values.put(DatabaseContract.Cuotas.CREDITO_ID, cuota.getCreditoId());
 				values.put(DatabaseContract.Cuotas.NUMERO_CUOTA, cuota.getNumeroCuota());
 				values.put(DatabaseContract.Cuotas.MONTO_CUOTA, cuota.getMontoCuota());
-				values.put(DatabaseContract.Cuotas.FECHA_PAGO, cuota.getFechaPago());
+				// 💡 SOLUCIÓN: Conversión de Date a String
+				String fechaPagoString = DB_DATE_FORMAT.format(cuota.getFechaPago());
+
+				// ✅ PASAR LA STRING A CONTENTVALUES
+				values.put(DatabaseContract.Cuotas.FECHA_PAGO, fechaPagoString);
+				//values.put(DatabaseContract.Cuotas.FECHA_PAGO, cuota.getFechaPago());
 				//values.put(DatabaseContract.Cuotas.PAGADA, cuota.isPagada()); // O 0 si no se setea
 				// CORRECCIÓN: Usar getPagada() para obtener el valor INT (0 o 1)
 				values.put(DatabaseContract.Cuotas.PAGADA, cuota.getPagada());
@@ -127,5 +159,58 @@ public class CuotasDao {
 
 				return rowId;
 			}
-		
+		/**
+		 * Recupera todas las cuotas asociadas a un ID de crédito específico.
+		 */
+		public List<Cuota> getCuotasByCreditoId(int creditoId) {
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				List<Cuota> cuotasList = new ArrayList<>();
+
+				// Consulta para obtener las cuotas ordenadas por número de cuota
+				String selection = DatabaseContract.Cuotas.CREDITO_ID + " = ?";
+				String[] selectionArgs = { String.valueOf(creditoId) };
+				String orderBy = DatabaseContract.Cuotas.NUMERO_CUOTA + " ASC";
+
+				Cursor cursor = null;
+				try {
+						cursor = db.query(
+							DatabaseContract.Cuotas.TABLE,
+							null, // Devolver todas las columnas
+							selection,
+							selectionArgs,
+							null,
+							null,
+							orderBy
+						);
+
+						while (cursor.moveToNext()) {
+								Cuota cuota = new Cuota();
+
+								// Asegúrate de que los nombres de columnas coincidan con DatabaseContract
+								cuota.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.ID)));
+								cuota.setCreditoId(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.CREDITO_ID)));
+								cuota.setNumeroCuota(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.NUMERO_CUOTA)));
+								cuota.setMontoCuota(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.MONTO_CUOTA)));
+								cuota.setPagada(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.PAGADA)));
+
+								// Convertir la fecha de String (guardada en DB) a Date
+								String fechaString = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.FECHA_PAGO));
+								try {
+										// Usar el mismo formato que se usa al guardar ("yyyy-MM-dd")
+										SimpleDateFormat dbDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
+										cuota.setFechaPago(dbDateFormat.parse(fechaString));
+									} catch (ParseException e) {
+										e.printStackTrace();
+									}
+
+								cuotasList.add(cuota);
+							}
+					} finally {
+						if (cursor != null) {
+								cursor.close();
+							}
+						db.close(); // Cerrar la base de datos
+					}
+				return cuotasList;
+			}
 	}

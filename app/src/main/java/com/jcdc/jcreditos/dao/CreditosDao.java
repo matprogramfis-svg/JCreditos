@@ -16,10 +16,12 @@ public class CreditosDao {
 		
 		// 💡 NUEVA VARIABLE: Instancia de CuotasDao
 		private CuotasDao cuotasDao;
-
+		// 💡 FORMATO ESTÁNDAR PARA SQLITE (yyyy-MM-dd)
+		private final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd", Locale.US); 
+		
 		// Formato estándar para almacenar y leer fechas en SQLite (TEXT)
-		private static final String DATE_FORMAT = "yyyy-MM-dd";
-		private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+		//private static final String DATE_FORMAT = "dd/MM/yyyy";
+		//private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DB_DATE_FORMAT, Locale.US);
 		
 		// Nombres de columna auxiliares para la unión (para evitar conflictos)
 		private static final String COL_NOMBRE_CLIENTE_ALIAS = "nombre_cliente_alias";
@@ -59,7 +61,17 @@ public class CreditosDao {
 						creditosValues.put(DatabaseContract.Creditos.INTERES_PORCENTAJE, credito.getInteresPorcentaje());
 						creditosValues.put(DatabaseContract.Creditos.INTERES_MONTO, credito.getInteresMonto());
 						creditosValues.put(DatabaseContract.Creditos.TOTAL, credito.getTotal());
-						creditosValues.put(DatabaseContract.Creditos.FECHA_INICIO, credito.getFechaInicio());
+						//creditosValues.put(DatabaseContract.Creditos.FECHA_INICIO, credito.getFechaInicio());
+						// ✅ SOLUCIÓN: Conversión de Date a String
+
+// 1. Obtener el objeto Date
+						Date fechaInicioObjeto = credito.getFechaInicio();
+
+// 2. Convertir el objeto Date a String usando el formato de la DB
+						String fechaInicioString = DB_DATE_FORMAT.format(fechaInicioObjeto);
+
+// 3. Poner el String en ContentValues
+						creditosValues.put(DatabaseContract.Creditos.FECHA_INICIO, fechaInicioString);
 						// ESTADO y CREADO_TS se manejan por defecto
 
 						creditoId = db.insert(DatabaseContract.Creditos.TABLE, null, creditosValues);
@@ -97,7 +109,7 @@ public class CreditosDao {
 				double montoPorCuota = credito.getTotal() / totalCuotas; // Amortización simple (iguales)
 
 				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(dateFormat.parse(credito.getFechaInicio()));
+				calendar.setTime(credito.getFechaInicio());
 
 				for (int i = 1; i <= totalCuotas; i++) {
 
@@ -122,7 +134,7 @@ public class CreditosDao {
 									}
 							}*/
 
-						String fechaPago = dateFormat.format(calendar.getTime());
+						Date fechaPago = calendar.getTime();
 
 						// 3. INSERTAR CUOTA
 						/*ContentValues cuotasValues = new ContentValues();
@@ -206,7 +218,23 @@ public class CreditosDao {
 				credito.setTotal(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.TOTAL)));
 
 				// 4. Asignar Campos de Texto/Fecha (TEXT / STRING)
-				credito.setFechaInicio(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.FECHA_INICIO)));
+				//credito.setFechaInicio(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.FECHA_INICIO)));
+				// 1. Obtener la String de la fecha del Cursor
+				String fechaString = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.FECHA_INICIO));
+
+				try {
+						// 2. Usar el DB_DATE_FORMAT (yyyy-MM-dd) para convertir la String a un objeto Date
+						Date fechaInicioObjeto = DB_DATE_FORMAT.parse(fechaString);
+
+						// 3. Asignar el objeto Date al POJO
+						credito.setFechaInicio(fechaInicioObjeto);
+
+					} catch (ParseException e) {
+						// Manejar el error si la fecha en la DB no tiene el formato esperado
+						e.printStackTrace();
+						// Opcional: Asignar null o una fecha segura en caso de fallo
+						credito.setFechaInicio(null); 
+					}
 				credito.setCreadoTs(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Creditos.CREADO_TS)));
 
 				// 5. Asignar Estado (INTEGER)
@@ -288,7 +316,15 @@ public class CreditosDao {
 				values.put(DatabaseContract.Creditos.INTERES_PORCENTAJE, credito.getInteresPorcentaje());
 				values.put(DatabaseContract.Creditos.INTERES_MONTO, credito.getInteresMonto());
 				values.put(DatabaseContract.Creditos.TOTAL, credito.getTotal());
-				values.put(DatabaseContract.Creditos.FECHA_INICIO, credito.getFechaInicio());
+				//values.put(DatabaseContract.Creditos.FECHA_INICIO, credito.getFechaInicio());
+				// 1. Obtener el objeto Date del POJO Credito
+				Date fechaInicioObjeto = credito.getFechaInicio();
+
+// 2. CONVERSIÓN CRUCIAL: Convertir el objeto Date a String (yyyy-MM-dd)
+				String fechaInicioString = DB_DATE_FORMAT.format(fechaInicioObjeto);
+
+// 3. Pasar la String a ContentValues (¡Ya no da error!)
+				values.put(DatabaseContract.Creditos.FECHA_INICIO, fechaInicioString);
 				values.put(DatabaseContract.Creditos.ESTADO, credito.getEstado());
 
 				// Cláusula WHERE para asegurar que solo se actualice el registro correcto

@@ -1,13 +1,24 @@
 package com.jcdc.jcreditos.model;
+import java.util.*;
 
 public class Cuota {
 		private int id;
 		private int creditoId;
 		private int numeroCuota;
 		private double montoCuota;
-		private String fechaPago; // Usar String para DATE
+		private Date fechaPago; // Usar String para DATE
 		private int pagada; // 0 o 1
-		private String pagadaTs; // Usar String para DATETIME
+		private String pagadaTs;
+
+		public void setFechaPago(Date fechaPago)
+			{
+				this.fechaPago = fechaPago;
+			}
+
+		public Date getFechaPago()
+			{
+				return fechaPago;
+			} // Usar String para DATETIME
 
 		// Constructor, Getters y Setters
 		// (Omito la implementación de Getters/Setters para ahorrar espacio, pero debes incluirlos)
@@ -53,16 +64,6 @@ public class Cuota {
 		public double getMontoCuota()
 			{
 				return montoCuota;
-			}
-
-		public void setFechaPago(String fechaPago)
-			{
-				this.fechaPago = fechaPago;
-			}
-
-		public String getFechaPago()
-			{
-				return fechaPago;
 			}
 
 		public void setPagada(int pagada)

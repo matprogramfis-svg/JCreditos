@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.5"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_cuota_numero"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="# 1"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#333333"/>
+
+        <TextView
+            android:id="@+id/tv_cuota_fecha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01/01/2026"
+            android:textSize="12sp"
+            android:textColor="#666666"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:layout_gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_cuota_monto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bs. 125.50"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#006600"/>
+
+        <TextView
+            android:id="@+id/tv_cuota_estado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pendiente"
+            android:textSize="12sp"
+            android:textStyle="italic"/>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_pagar_cuota"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_vertical"
+        android:src="@android:drawable/ic_input_add"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="Botón de Pago"/>
+
+</LinearLayout>

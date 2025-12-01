@@ -1,4 +1,5 @@
 package com.jcdc.jcreditos.model;
+import java.util.*;
 
 public class Credito {
 		private int id;
@@ -8,7 +9,7 @@ public class Credito {
 		private double interesPorcentaje;
 		private double interesMonto;
 		private double total;
-		private String fechaInicio; // Usar String para DATE
+		private Date fechaInicio; // Usar String para DATE
 		private int estado;
 		private String creadoTs;
 
@@ -20,6 +21,16 @@ public class Credito {
 // ...
 		private String nombreCliente;
 		private String nombrePlan;
+
+		public void setFechaInicio(Date fechaInicio)
+			{
+				this.fechaInicio = fechaInicio;
+			}
+
+		public Date getFechaInicio()
+			{
+				return fechaInicio;
+			}
 
 // --- GETTERS Y SETTERS ---
 		public String getNombreCliente() { return nombreCliente; }
@@ -99,15 +110,7 @@ public class Credito {
 				return total;
 			}
 
-		public void setFechaInicio(String fechaInicio)
-			{
-				this.fechaInicio = fechaInicio;
-			}
-
-		public String getFechaInicio()
-			{
-				return fechaInicio;
-			}
+		
 
 		public void setEstado(int estado)
 			{
