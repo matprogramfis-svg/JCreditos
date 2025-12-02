@@ -16,19 +16,47 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+import com.jcdc.jcreditos.dao.CuotasDao; // <-- AGREGAR ESTO
+// Importar la interfaz
+import com.jcdc.jcreditos.adapter.OnCuotaActionListener;
+
 public class CuotasAdapter extends BaseAdapter {
 
 		private Context context;
 		private List<Cuota> cuotasList;
 		private LayoutInflater inflater;
+		private CuotasDao cuotasDao; // <-- AGREGAR ESTO
+		private OnCuotaActionListener listener; // <-- AGREGAR ESTO
+		
+		// 💡 INTERFAZ DE COMUNICACIÓN (Debe estar dentro de la clase)
+		/*public interface OnCuotaActionListener {
+				void onCuotaPaid(int cuotaId);
+			}*/
 
 		// Formato de fecha que usaste para mostrar (ej: 30/11/2025)
-		private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
+		private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US); 
 
-		public CuotasAdapter(Context context, List<Cuota> cuotasList) {
+		/*public CuotasAdapter(Context context, List<Cuota> cuotasList) {
 				this.context = context;
 				this.cuotasList = cuotasList;
 				this.inflater = LayoutInflater.from(context);
+			}*/
+			
+		// ✅ CONSTRUCTOR CORREGIDO: Acepta el listener
+		public CuotasAdapter(Context context, List<Cuota> cuotasList, OnCuotaActionListener listener) {
+				this.context = context;
+				this.cuotasList = cuotasList;
+				this.inflater = LayoutInflater.from(context);
+				this.cuotasDao = new CuotasDao(context); // Inicializar DAO
+				this.listener = listener; // Guardar el listener
+			}
+			
+		// Dentro de CuotasAdapter.java
+
+		public void updateData(List<Cuota> nuevaLista) {
+				this.cuotasList.clear();
+				this.cuotasList.addAll(nuevaLista);
+				notifyDataSetChanged();
 			}
 
 		@Override
@@ -72,7 +100,14 @@ public class CuotasAdapter extends BaseAdapter {
 
 				// 4. Asignar datos a las vistas
 				holder.tvNumero.setText("# " + cuota.getNumeroCuota());
-				holder.tvFecha.setText(dateFormat.format(cuota.getFechaPago()));
+				// ✅ CORRECCIÓN CLAVE: Verificar si la fecha es nula
+				if (cuota.getFechaPago() != null) {
+						holder.tvFecha.setText(dateFormat.format(cuota.getFechaPago()));
+					} else {
+						// Proporcionar un texto de reserva en caso de que la fecha sea nula
+						holder.tvFecha.setText("Fecha no asignada");
+					}
+				//holder.tvFecha.setText(dateFormat.format(cuota.getFechaPago()));
 				holder.tvMonto.setText("Bs. " + String.format("%.2f", cuota.getMontoCuota()));
 
 				// 5. Lógica de Estado (0=Pendiente, 1=Pagada)
@@ -94,9 +129,25 @@ public class CuotasAdapter extends BaseAdapter {
 							public void onClick(View v) {
 									// Aquí se implementaría la lógica para registrar el pago.
 									// Por ahora, solo mostramos un Toast. La lógica de DAO va después.
-									Toast.makeText(context, 
+									/*Toast.makeText(context, 
 												   "Pagar Cuota #" + cuota.getNumeroCuota() + " (ID: " + cuota.getId() + ")", 
-												   Toast.LENGTH_SHORT).show();
+												   Toast.LENGTH_SHORT).show();*/
+									if (cuota.getPagada() == 0) { // Solo si está pendiente
+
+											// 1. Llamar al DAO para actualizar la base de datos
+											int filasAfectadas = cuotasDao.markCuotaAsPaid(cuota.getId()); // <-- Debes tener este método en CuotasDao
+
+											if (filasAfectadas > 0) {
+													Toast.makeText(context, "Cuota #" + cuota.getNumeroCuota() + " Pagada!", Toast.LENGTH_SHORT).show();
+
+													// 2. Notificar a la Activity para recargar la lista
+													if (listener != null) {
+															listener.onCuotaPaid(cuota.getId());
+														}
+												} else {
+													Toast.makeText(context, "Error al marcar el pago.", Toast.LENGTH_SHORT).show();
+												}
+											}
 								}
 						});
 

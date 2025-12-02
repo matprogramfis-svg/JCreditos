@@ -17,14 +17,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+		<activity android:name=".ui.ClienteDetalleActivity" />
+		<activity android:name=".ui.ClienteActivity" />
 		<activity android:name=".ui.CreditoDetalleActivity"/>
 		<activity android:name=".ui.CreditosActivity"/>
-		<activity android:name=".ui.PlanesActivity"/>
+		<activity android:name=".ui.CuotasActivity" />
 		<activity android:name=".ui.PlanDetalleActivity" />
-		<activity android:name=".ui.ClienteActivity" />
-		<activity android:name=".ui.ClientesActivity" />
-		<activity android:name=".ui.ClienteDetalleActivity" />
-		<activity android:name=".ui.ListaClientesActivity" />
+		<activity android:name=".ui.PlanesActivity"/>
     </application>
 
 </manifest>

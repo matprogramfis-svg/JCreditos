@@ -104,7 +104,13 @@ public class CreditosDao {
 		/**
 		 * Lógica principal para calcular fechas e insertar cuotas.
 		 */
+		 
 		private void generateCuotas(SQLiteDatabase db, Credito credito, Plan plan) throws ParseException {
+			
+				Log.d("DEBUG_PLAN", "Plan seleccionado: " + plan.getNombre());
+				Log.d("DEBUG_PLAN", "Cuotas totales: " + plan.getCuotasTotales());
+				Log.d("DEBUG_PLAN", "Frecuencia: " + plan.getFrecuencia());
+				
 				int totalCuotas = plan.getCuotasTotales();
 				double montoPorCuota = credito.getTotal() / totalCuotas; // Amortización simple (iguales)
 
@@ -136,15 +142,13 @@ public class CreditosDao {
 
 						Date fechaPago = calendar.getTime();
 
-						// 3. INSERTAR CUOTA
-						/*ContentValues cuotasValues = new ContentValues();
-						cuotasValues.put(DatabaseContract.Cuotas.CREDITO_ID, credito.getId());
-						cuotasValues.put(DatabaseContract.Cuotas.NUMERO_CUOTA, i);
-						cuotasValues.put(DatabaseContract.Cuotas.MONTO_CUOTA, montoPorCuota);
-						cuotasValues.put(DatabaseContract.Cuotas.FECHA_PAGO, fechaPago);
-
-						long cuotaRowId = db.insert(DatabaseContract.Cuotas.TABLE, null, cuotasValues);
-						*/
+						
+						String logFecha = DB_DATE_FORMAT.format(fechaPago);
+						Log.d("GeneracionCuotas", 
+							  "Credito ID: " + credito.getId() + 
+							  " | Cuota #" + i + 
+							  " | Monto: " + String.format("%.2f", montoPorCuota) +
+							  " | Fecha Vencimiento (DB Format): " + logFecha);
 						// 3. INSERTAR CUOTA
 						Cuota cuota = new Cuota();
 						cuota.setCreditoId(credito.getId());

@@ -19,29 +19,6 @@ public class CuotasDao {
 				dbHelper = new DbHelper(context);
 			}
 
-		// Obtener todas las cuotas de un crédito específico
-		/*public Cursor getCuotasByCreditoId(int creditoId) {
-				SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-				String selection = DatabaseContract.Cuotas.CREDITO_ID + " = ?";
-				String[] selectionArgs = { String.valueOf(creditoId) };
-
-				String sortOrder = DatabaseContract.Cuotas.NUMERO_CUOTA + " ASC";
-
-				Cursor cursor = db.query(
-					DatabaseContract.Cuotas.TABLE,
-					null, // Devolvemos todas las columnas de la cuota
-					selection,
-					selectionArgs,
-					null,
-					null,
-					sortOrder
-				);
-
-				// No cerramos la DB ni el Cursor aquí
-				return cursor;
-			}*/
-
 		// Marcar una cuota como pagada (Usa el TRIGGER que ya definiste en DbHelper)
 		public int markCuotaAsPaid(int cuotaId) {
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -162,7 +139,7 @@ public class CuotasDao {
 		/**
 		 * Recupera todas las cuotas asociadas a un ID de crédito específico.
 		 */
-		public List<Cuota> getCuotasByCreditoId(int creditoId) {
+		/*public List<Cuota> getCuotasByCreditoId(int creditoId) {
 				SQLiteDatabase db = dbHelper.getReadableDatabase();
 				List<Cuota> cuotasList = new ArrayList<>();
 
@@ -196,14 +173,14 @@ public class CuotasDao {
 								// Convertir la fecha de String (guardada en DB) a Date
 								String fechaString = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Cuotas.FECHA_PAGO));
 								try {
-										// Usar el mismo formato que se usa al guardar ("yyyy-MM-dd")
-										SimpleDateFormat dbDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.US); 
-										cuota.setFechaPago(dbDateFormat.parse(fechaString));
+										// ✅ CORRECTO:
+										//SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+										cuota.setFechaPago(DB_DATE_FORMAT.parse(fechaString));
 									} catch (ParseException e) {
 										e.printStackTrace();
+										cuota.setFechaPago(null);
 									}
-
-								cuotasList.add(cuota);
+									cuotasList.add(cuota);
 							}
 					} finally {
 						if (cursor != null) {
@@ -212,5 +189,75 @@ public class CuotasDao {
 						db.close(); // Cerrar la base de datos
 					}
 				return cuotasList;
+			}*/
+		public List<Cuota> getCuotasByCreditoId(int creditoId) {
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				List<Cuota> cuotasList = new ArrayList<>();
+
+				String selection = DatabaseContract.Cuotas.CREDITO_ID + " = ?";
+				String[] selectionArgs = { String.valueOf(creditoId) };
+				String orderBy = DatabaseContract.Cuotas.NUMERO_CUOTA + " ASC";
+
+				Cursor cursor = null;
+				try {
+						cursor = db.query(
+							DatabaseContract.Cuotas.TABLE,
+							null,
+							selection,
+							selectionArgs,
+							null,
+							null,
+							orderBy
+						);
+
+						while (cursor.moveToNext()) {
+								cuotasList.add(cursorToCuota(cursor));
+							}
+
+					} finally {
+						if (cursor != null) cursor.close();
+						db.close();
+					}
+
+				return cuotasList;
+			}
+		// =======================================================
+//     ACTUALIZAR TODAS LAS CUOTAS (GUARDAR CAMBIOS)
+// =======================================================
+		public void actualizarCuotas(List<Cuota> listaCuotas) {
+
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				db.beginTransaction();
+
+				try {
+
+						for (Cuota cuota : listaCuotas) {
+
+								ContentValues values = new ContentValues();
+								values.put(DatabaseContract.Cuotas.MONTO_CUOTA, cuota.getMontoCuota());
+
+								// Convertir Date → String antes de guardar
+								String fechaString = DB_DATE_FORMAT.format(cuota.getFechaPago());
+								values.put(DatabaseContract.Cuotas.FECHA_PAGO, fechaString);
+
+								values.put(DatabaseContract.Cuotas.PAGADA, cuota.getPagada());
+
+								// Si está pagada → registrar timestamp
+								if (cuota.getPagada() == 1) {
+										values.put(DatabaseContract.Cuotas.PAGADA_TS, String.valueOf(System.currentTimeMillis()));
+									}
+
+								String where = DatabaseContract.Cuotas.ID + " = ?";
+								String[] args = { String.valueOf(cuota.getId()) };
+
+								db.update(DatabaseContract.Cuotas.TABLE, values, where, args);
+							}
+
+						db.setTransactionSuccessful();
+
+					} finally {
+						db.endTransaction();
+						db.close();
+					}
 			}
 	}

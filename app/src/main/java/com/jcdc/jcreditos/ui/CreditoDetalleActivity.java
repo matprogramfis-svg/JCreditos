@@ -12,7 +12,22 @@ import com.jcdc.jcreditos.model.*;
 import java.text.*;
 import java.util.*;
 
-public class CreditoDetalleActivity extends Activity {
+public class CreditoDetalleActivity extends Activity implements OnCuotaActionListener
+	{
+
+		@Override
+		public void onCuotaPaid(int cuotaId)
+			{
+				// 💡 Paso 1: Verificamos que tengamos un crédito actual cargado
+				if (creditoActual != null) {
+
+						// 💡 Paso 2: Llamamos al método que recarga la lista de cuotas.
+						// Esto consulta la base de datos de nuevo, encuentra la cuota como pagada,
+						// y le dice al ListView que se redibuje.
+						loadCuotasList(creditoActual.getId()); 
+					}
+			}
+		
 
 		// Formato que el usuario ingresa/ve
 		private final SimpleDateFormat DISPLAY_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
@@ -119,7 +134,34 @@ public class CreditoDetalleActivity extends Activity {
 								// Rellenar campos del formulario con los datos de creditoActual
 								etCapital.setText(String.valueOf(creditoActual.getCapital()));
 								// ... (rellenar otros campos)
+								etTasaInteres.setText(String.valueOf(creditoActual.getInteresPorcentaje()));
+								// 1. Manejo de la Fecha de Inicio (¡Crucial!)
+//    Debe usar el formato de visualización (dd/MM/yyyy), no solo String.valueOf(Date)
+								if (creditoActual.getFechaInicio() != null) {
+										String fechaInicioStr = DISPLAY_DATE_FORMAT.format(creditoActual.getFechaInicio());
+										etFechaInicio.setText(fechaInicioStr);
+									}
 
+// 2. Rellenar el Autocompletado del Cliente
+//    Necesitas el ID para el guardado posterior. Asumimos que tienes getNombreCliente() en Credito.java.
+								etClienteNombre.setText(creditoActual.getNombreCliente());
+								clienteSeleccionadoId = creditoActual.getClienteId(); // <-- IMPORTANTE: Guardar el ID para edición/guardado
+
+// 3. SELECCIÓN DEL SPINNER DE PLANES (spPlan)
+								int planIdActual = creditoActual.getPlanId();
+								int posicionSeleccionada = 0; // Por defecto, el primer elemento
+
+// Recorrer la lista de planes que cargaste previamente
+								for (int i = 0; i < listaPlanes.size(); i++) {
+										Plan plan = listaPlanes.get(i);
+										if (plan.getId() == planIdActual) {
+												posicionSeleccionada = i;
+												break; // Detener el bucle al encontrar el plan
+											}
+									}
+
+// Aplicar la selección
+								spPlan.setSelection(posicionSeleccionada);
 								// Cargar la lista de cuotas (Premisa 5)
 								loadCuotasList(creditoActual.getId());
 
@@ -211,8 +253,11 @@ public class CreditoDetalleActivity extends Activity {
 				List<Cuota> cuotas = cuotasDao.getCuotasByCreditoId(id);
 
 				// 2. Crear y asignar el adaptador
-				CuotasAdapter adapter = new CuotasAdapter(this, cuotas);
+				CuotasAdapter adapter = new CuotasAdapter(this, cuotas,this);
 				lvCuotas.setAdapter(adapter);
+				
+				// ✅ ESTO ES LO QUE ARREGLA EL PROBLEMA DE LAS 4 CUOTAS
+				//setListViewHeightBasedOnChildren(lvCuotas);
 
 				// Si la lista está vacía, ocultar la ListView o mostrar un mensaje
 				if (cuotas.isEmpty()) {
@@ -416,5 +461,6 @@ public class CreditoDetalleActivity extends Activity {
 				creditoActual.setTotal(totalAPagar);
 			}
 
+		
 		// ... (Métodos de Menú/ActionBar similares a PlanesActivity)
 	}
