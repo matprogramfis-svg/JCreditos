@@ -3,6 +3,7 @@ package com.jcdc.jcreditos.ui;
 import android.app.*;
 import android.content.*;
 import android.os.*;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
 import com.jcdc.jcreditos.*;
@@ -25,6 +26,8 @@ public class ClientesActivity extends Activity {
 				super.onCreate(savedInstanceState);
 				setContentView(R.layout.activity_clientes); 
 
+				
+				
 				clientesDao = new ClientesDao(this);
 				listViewClientes = findViewById(R.id.listview_clientes);
 				btnAgregar = findViewById(R.id.btn_agregar_cliente);
@@ -54,9 +57,17 @@ public class ClientesActivity extends Activity {
 								}
 						});
 			}
+			
+		@Override
+		protected void onStart() {
+				super.onStart();
+				loadClientesList();
+			}
 
 		private void loadClientesList() {
 				List<Cliente> lista = clientesDao.getAllClientes();
+				
+				Log.e("ClientesActivity", "Clientes en lista: " + lista.size());
 
 				if (adapter == null) {
 						adapter = new ClientesAdapter(this, lista);
@@ -82,6 +93,19 @@ public class ClientesActivity extends Activity {
 					}
 			}
 		// ***
+		// Dentro de ClientesActivity.java
+
+// ... después del método onActivityResult ...
+
+		@Override
+		protected void onResume() {
+				super.onResume();
+				// 💡 SOLUCIÓN: Recargar la lista de clientes cada vez que la Activity vuelve a primer plano
+				// Esto asegura que los clientes creados desde CreditoDetalleActivity o cualquier otra
+				// Activity sean visibles inmediatamente.
+				loadClientesList(); 
+			}
+			
 		@Override
 		public boolean onCreateOptionsMenu(Menu menu)
 			{

@@ -54,14 +54,14 @@ public class MainActivity extends Activity implements OnClickListener
 		findViewById(R.id.btn_cliente).setOnClickListener(this);
 		findViewById(R.id.btn_credito).setOnClickListener(this);
 		// 🔥 LLAMAR AQUÍ AL DUMP
-      /*  DbHelper helper = new DbHelper(this);
+      	DbHelper helper = new DbHelper(this);
         SQLiteDatabase db = helper.getReadableDatabase();
 
-        dumpTable(db, DatabaseContract.Estados.TABLE);   // Ejemplo
-        dumpTable(db, DatabaseContract.Creditos.TABLE); // Otro ejemplo
-        dumpTable(db, DatabaseContract.Cuotas.TABLE);    // Otro ejemplo
-		dumpTable(db, DatabaseContract.Planes.TABLE);
-        db.close();*/
+        dumpTable(db, DatabaseContract.Clientes.TABLE);   // Ejemplo
+        //dumpTable(db, DatabaseContract.Creditos.TABLE); // Otro ejemplo
+        //dumpTable(db, DatabaseContract.Cuotas.TABLE);    // Otro ejemplo
+		//dumpTable(db, DatabaseContract.Planes.TABLE);
+        db.close();
 		//runFullIntegrationTest(this);
 		//pruebaDao();
 		//runTestAndDisplayCredit(this);

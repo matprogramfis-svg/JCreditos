@@ -1,8 +1,10 @@
 package com.jcdc.jcreditos.ui;
 
 import android.app.*;
+import android.content.*;
 import android.os.*;
 import android.text.*;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
 import com.jcdc.jcreditos.*;
@@ -28,7 +30,8 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 					}
 			}
 		
-
+		private boolean bloqueandoTexto = false;
+		
 		// Formato que el usuario ingresa/ve
 		private final SimpleDateFormat DISPLAY_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 		// Formato que la DB (y la lógica interna) requiere
@@ -44,7 +47,6 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 		private EditText etCapital, etTasaInteres, etFechaInicio;
 		private TextView tvInteresMonto, tvTotalCredito;
 		private Button btnGuardar;
-		private ListView lvCuotas; // Para mostrar las cuotas del crédito
 
 		private int creditoId = -1; // -1 indica que es un nuevo crédito
 		private Credito creditoActual;
@@ -55,6 +57,7 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 		private EditText etClienteNombre; // El campo de texto (ya lo tenías como etCliente)
 		private ListView lvSugerenciasClientes; // El ListView flotante
 		private int clienteSeleccionadoId = -1; // ID del cliente final
+		//private int clienteSeleccionadoId = -1; // <-- INICIALIZACIÓN
 
 		// Adaptador simple para mostrar las sugerencias de nombres
 		private ArrayAdapter<String> sugerenciasAdapter;
@@ -83,9 +86,64 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 				setupAutocomplete(); // Llamada al nuevo método
 				
 				// 5. Listener de Guardado
+				// Código de ejemplo para el Click Listener del botón GUARDAR CRÉDITO
+
+				/*btnGuardar.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+									// 1. Obtener el nombre ingresado
+									String nombreClienteIngresado = etClienteNombre.getText().toString().trim();
+
+									if (nombreClienteIngresado.isEmpty()) {
+											Toast.makeText(CreditoDetalleActivity.this, "El nombre del cliente es obligatorio.", Toast.LENGTH_SHORT).show();
+											return;
+										}
+
+									clienteSeleccionadoId = obtenerClienteId(); // Método auxiliar que devuelve el ID
+
+									// 2. LÓGICA CLAVE: Si no hay ID, crear un nuevo cliente
+									if (clienteSeleccionadoId == -1) {
+
+											// Si el campo de Cliente NO está vacío, creamos un nuevo cliente.
+
+											// a. Crear objeto Cliente
+											Cliente nuevoCliente = new Cliente();
+											nuevoCliente.setNombre(nombreClienteIngresado);
+											// IMPORTANTE: Asegúrate de configurar otros campos obligatorios (CI, Teléfono, etc.)
+											// Si estos campos son obligatorios, debes mostrarlos en la UI.
+
+											// b. Insertar en la base de datos
+											ClientesDao clientesDao = new ClientesDao(CreditoDetalleActivity.this);
+											long newRowId = clientesDao.insertCliente(nuevoCliente);
+
+											if (newRowId > 0) {
+													clienteSeleccionadoId = (int) newRowId;
+													Toast.makeText(CreditoDetalleActivity.this, "Cliente nuevo creado con éxito.", Toast.LENGTH_SHORT).show();
+												} else {
+													Toast.makeText(CreditoDetalleActivity.this, "Error al crear nuevo cliente.", Toast.LENGTH_SHORT).show();
+													return;
+												}
+										}
+
+									// 3. CONTINUAR CON EL GUARDADO DEL CRÉDITO
+									guardarCredito(); // Llamar a tu método de guardado de crédito
+								}
+						});*/
+					// ***
 				btnGuardar.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View v) {
+
+									String nombreClienteIngresado = etClienteNombre.getText().toString().trim();
+
+									if (nombreClienteIngresado.isEmpty()) {
+											Toast.makeText(CreditoDetalleActivity.this, "El nombre del cliente es obligatorio.", Toast.LENGTH_SHORT).show();
+											return;
+										}
+
+									// El autocomplete ya debe haber asignado el ID si el cliente existe.
+									// Si el usuario escribe un nombre nuevo, clienteSeleccionadoId seguirá en -1.
+
 									guardarCredito();
 								}
 						});
@@ -102,7 +160,7 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 				tvInteresMonto = findViewById(R.id.tv_interes_monto);
 				tvTotalCredito = findViewById(R.id.tv_total_credito);
 				btnGuardar = findViewById(R.id.btn_guardar_credito);
-				lvCuotas = findViewById(R.id.lv_cuotas); // Solo visible en modo Edición
+				//lvCuotas = findViewById(R.id.lv_cuotas); // Solo visible en modo Edición
 				// Autocompletado:
 				etClienteNombre = findViewById(R.id.et_cliente_nombre);
 				lvSugerenciasClientes = findViewById(R.id.lv_sugerencias_clientes);
@@ -185,7 +243,7 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 							@Override
 							public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-							@Override
+							/*@Override
 							public void onTextChanged(CharSequence s, int start, int before, int count) {
 									String query = s.toString().trim();
 									if (query.length() > 0) {
@@ -196,14 +254,32 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 											lvSugerenciasClientes.setVisibility(View.GONE);
 											clienteSeleccionadoId = -1; // Deseleccionar si el campo se borra
 										}
+								}*/
+							@Override
+							public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+									if (bloqueandoTexto) {
+											return; // Evita que borre el clienteSeleccionadoId
+										}
+
+									String query = s.toString().trim();
+
+									if (query.length() > 0) {
+											List<Cliente> coincidencias = clientesDao.searchClientes(query);
+											updateSugerenciasList(coincidencias);
+										} else {
+											lvSugerenciasClientes.setVisibility(View.GONE);
+											clienteSeleccionadoId = -1;
+										}
 								}
+							
 
 							@Override
 							public void afterTextChanged(Editable s) {}
 						});
 						
 				// 2. Configurar el Listener de clic en la sugerencia
-				lvSugerenciasClientes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				/*lvSugerenciasClientes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 							@Override
 							public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 									// El objeto Cliente se obtiene del adaptador en la posición clicada
@@ -216,7 +292,26 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 									// 4. Ocultar la lista
 									lvSugerenciasClientes.setVisibility(View.GONE);
 								}
+						});*/
+						
+				lvSugerenciasClientes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+							@Override
+							public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+									Cliente cliente = (Cliente) parent.getItemAtPosition(position);
+
+									bloqueandoTexto = true; // ← ACTIVAR BLOQUEO
+
+									etClienteNombre.setText(cliente.getNombre());
+
+									bloqueandoTexto = false; // ← DESACTIVAR BLOQUEO
+
+									clienteSeleccionadoId = cliente.getId();
+
+									lvSugerenciasClientes.setVisibility(View.GONE);
+								}
 						});
+				
 
 						// 3. Colocar el nombre en el EditText y guardar el ID
 						/*etClienteNombre.setText(cliente.getNombre());
@@ -253,69 +348,22 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 				List<Cuota> cuotas = cuotasDao.getCuotasByCreditoId(id);
 
 				// 2. Crear y asignar el adaptador
-				CuotasAdapter adapter = new CuotasAdapter(this, cuotas,this);
-				lvCuotas.setAdapter(adapter);
+				/*CuotasAdapter adapter = new CuotasAdapter(this, cuotas,this);
+				lvCuotas.setAdapter(adapter);*/
 				
 				// ✅ ESTO ES LO QUE ARREGLA EL PROBLEMA DE LAS 4 CUOTAS
 				//setListViewHeightBasedOnChildren(lvCuotas);
 
 				// Si la lista está vacía, ocultar la ListView o mostrar un mensaje
-				if (cuotas.isEmpty()) {
+				/*if (cuotas.isEmpty()) {
 						lvCuotas.setVisibility(View.GONE);
 					} else {
 						lvCuotas.setVisibility(View.VISIBLE);
-					}
+					}*/
 			}
 
-		// Método basado en Premisa 4 (Lógica de guardado)
+		
 		/*private void guardarCredito() {
-				// 1. Validación y Extracción de datos del formulario
-				if (etCapital.getText().toString().isEmpty()) {
-						Toast.makeText(this, "Debe ingresar el capital.", Toast.LENGTH_SHORT).show();
-						return;
-					}
-					
-				// VALIDACIÓN CRUCIAL DEL CLIENTE
-				if (clienteSeleccionadoId == -1) {
-						Toast.makeText(this, "Debe seleccionar un cliente de la lista de sugerencias.", Toast.LENGTH_LONG).show();
-						return;
-					}
-
-				// 2. Obtener objetos seleccionados (asumiendo que los Spinners devuelven el POJO)
-				//Cliente clienteSeleccionado = (Cliente) spCliente.getSelectedItem();
-				Plan planSeleccionado = (Plan) spPlan.getSelectedItem();
-
-				// 3. Crear o actualizar objeto Credito
-				if (creditoActual == null) {
-						creditoActual = new Credito();
-					}
-
-				//creditoActual.setClienteId(clienteSeleccionado.getId());
-				creditoActual.setPlanId(planSeleccionado.getId());
-				// ... (settear el resto de campos: capital, tasa, fechas, etc.)
-				// Setear el ID del cliente seleccionado
-				creditoActual.setClienteId(clienteSeleccionadoId);
-
-				// 4. Ejecución de la operación
-				long resultado;
-				if (creditoId == -1) {
-						// CREAR: Usar el método transaccional que inserta y genera cuotas
-						resultado = creditosDao.insertCreditoAndCuotas(creditoActual);
-						Toast.makeText(this, "Crédito Creado!", Toast.LENGTH_SHORT).show();
-					} else {
-						// EDITAR: Solo actualizar el crédito principal (la modificación de cuotas es más compleja)
-						resultado = creditosDao.updateCredito(creditoActual);
-						Toast.makeText(this, "Crédito Actualizado!", Toast.LENGTH_SHORT).show();
-					}
-
-				if (resultado > 0) {
-						setResult(RESULT_OK); // Indicar a CreditosActivity que recargue la lista
-						finish();
-					} else {
-						Toast.makeText(this, "Error al guardar el crédito.", Toast.LENGTH_LONG).show();
-					}
-			}*/
-		private void guardarCredito() {
 				// 1. Validación y Extracción de datos del formulario
 				String capitalStr = etCapital.getText().toString();
 				String tasaStr = etTasaInteres.getText().toString(); // Asumiendo que tienes un etTasa
@@ -383,7 +431,7 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 					} else {
 						Toast.makeText(this, "Error al guardar el crédito.", Toast.LENGTH_LONG).show();
 					}
-			}
+			}*/
 		// Método basado en Premisa 3
 		private void setupCalculationListeners() {
 				// 1. Listener para Capital y Tasa (al escribir)
@@ -460,7 +508,216 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 				creditoActual.setInteresMonto(interesMonto);
 				creditoActual.setTotal(totalAPagar);
 			}
-
-		
 		// ... (Métodos de Menú/ActionBar similares a PlanesActivity)
+		/*private void guardarCredito() {
+				// 1. Validación y Extracción de datos del formulario
+				String capitalStr = etCapital.getText().toString();
+				String tasaStr = etTasaInteres.getText().toString();
+				String fechaInicioStr = etFechaInicio.getText().toString();
+				String nombreClienteIngresado = etClienteNombre.getText().toString().trim(); // <-- OBTENER NOMBRE DEL CAMPO
+				Date fechaInicioObjeto;
+
+				// --- VALIDACIONES INICIALES ---
+				if (nombreClienteIngresado.isEmpty()) {
+						Toast.makeText(this, "El nombre del cliente es obligatorio.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+				if (capitalStr.isEmpty()) {
+						Toast.makeText(this, "Debe ingresar el capital.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+
+				// VALIDACIÓN Y CONVERSIÓN DE LA FECHA
+				try {
+						fechaInicioObjeto = DISPLAY_DATE_FORMAT.parse(fechaInicioStr);
+					} catch (ParseException e) {
+						Toast.makeText(this, "Error: El formato de fecha debe ser dd/MM/yyyy.", Toast.LENGTH_LONG).show();
+						e.printStackTrace();
+						return;
+					}
+
+				// =======================================================
+				// 2. LÓGICA DE CLIENTE NUEVO / SELECCIONADO
+				// =======================================================
+				int clienteIdFinal = clienteSeleccionadoId; // Usamos el ID previamente seleccionado (si es -1, es nuevo)
+
+				if (clienteIdFinal == -1) {
+						// A. SI EL ID ES -1 (Cliente Nuevo o no Seleccionado de Sugerencias)
+						Cliente nuevoCliente = new Cliente();
+						nuevoCliente.setNombre(nombreClienteIngresado);
+						nuevoCliente.setEstado(1); // Activo
+						// === SOLUCIÓN CRUCIAL: ASIGNAR VALORES SEGUROS ===
+						// Asignar valores por defecto para evitar NullPointerException al leer
+						nuevoCliente.setCi("");         // O "N/A"
+						nuevoCliente.setTelefono("");   // O "N/A"
+						nuevoCliente.setDireccion("");  // O "N/A"
+						nuevoCliente.setGarantia("");  // O "N/A"
+						
+						Log.d("CI ", "Cliente: " + nuevoCliente.getCi());
+						
+						// ===============================================
+						//ClientesDao clientesDao = new ClientesDao(this);
+						//long newRowId = clientesDao.insertCliente(nuevoCliente);
+						ClientesDao clientesDao = new ClientesDao(this);
+						long newRowId = clientesDao.insertCliente(nuevoCliente);
+
+						if (newRowId > 0) {
+								clienteIdFinal = (int) newRowId; // Asignar el nuevo ID
+								clienteSeleccionadoId = clienteIdFinal;   // ← ← ← AGREGAR ESTA LÍNEA
+								Toast.makeText(this, "Cliente nuevo ('" + nombreClienteIngresado + "') registrado.", Toast.LENGTH_SHORT).show();
+							} else {
+								Toast.makeText(this, "Error al registrar el nuevo cliente.", Toast.LENGTH_LONG).show();
+								return; // Detener si falla la inserción del cliente
+							}
+					} 
+				// Si clienteIdFinal NO es -1, se usa el ID del cliente ya existente/seleccionado.
+
+				// 3. Obtener objetos seleccionados
+				Plan planSeleccionado = (Plan) spPlan.getSelectedItem();
+
+				// 4. Crear o actualizar objeto Credito
+				if (creditoActual == null) {
+						creditoActual = new Credito();
+					}
+
+				// Setear el ID del cliente (Nuevo o Existente)
+				creditoActual.setClienteId(clienteIdFinal);
+				creditoActual.setPlanId(planSeleccionado.getId());
+
+				// Setear los datos financieros
+				creditoActual.setCapital(Double.parseDouble(capitalStr));
+				creditoActual.setInteresPorcentaje(Double.parseDouble(tasaStr));
+				creditoActual.setFechaInicio(fechaInicioObjeto);
+
+				// 5. Ejecución de la operación
+				long resultado;
+				if (creditoId == -1) {
+						resultado = creditosDao.insertCreditoAndCuotas(creditoActual);
+						Toast.makeText(this, "Crédito Creado!", Toast.LENGTH_SHORT).show();
+					} else {
+						resultado = creditosDao.updateCredito(creditoActual);
+						Toast.makeText(this, "Crédito Actualizado!", Toast.LENGTH_SHORT).show();
+					}
+
+				if (resultado > 0) {
+						if (creditoId == -1) {
+								// MODO CREACIÓN: Redirigir a CuotasActivity
+
+								// 1. Obtener el ID del crédito insertado (si es nuevo)
+								// Ya que usamos 'resultado' para guardar el ID de la nueva fila (long),
+								// y tu objeto creditoActual ya tiene el ID asignado dentro de insertCreditoAndCuotas,
+								// podemos usar el ID del objeto.
+								int nuevoCreditoId = creditoActual.getId(); 
+
+								Intent intent = new Intent(this, CuotasActivity.class);
+								// Usa la clave correcta que estableciste en CreditosActivity.java: "CREDITO_ID"
+								intent.putExtra("CREDITO_ID", nuevoCreditoId); 
+
+								startActivity(intent);
+
+								// Cierra la Activity de Detalle/Creación
+								finish(); 
+
+							} else {
+								// MODO EDICIÓN: Vuelve a la lista principal (comportamiento anterior)
+								setResult(RESULT_OK);
+								finish();
+							}
+					} else {
+						Toast.makeText(this, "Error al guardar el crédito.", Toast.LENGTH_LONG).show();
+					}
+			}*/
+		// Dentro de CreditoDetalleActivity.java
+
+		private void guardarCredito() {
+				// 1. Obtener datos
+				String nombreClienteIngresado = etClienteNombre.getText().toString().trim();
+				String capitalStr = etCapital.getText().toString().trim();
+				String tasaStr = etTasaInteres.getText().toString().trim();
+				String fechaInicioStr = etFechaInicio.getText().toString().trim();
+
+				if (nombreClienteIngresado.isEmpty()) {
+						Toast.makeText(this, "El nombre del cliente es obligatorio.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+
+				if (capitalStr.isEmpty()) {
+						Toast.makeText(this, "Debe ingresar el capital.", Toast.LENGTH_SHORT).show();
+						return;
+					}
+
+				Date fechaInicioObjeto;
+				try {
+						fechaInicioObjeto = DISPLAY_DATE_FORMAT.parse(fechaInicioStr);
+					} catch (Exception e) {
+						Toast.makeText(this, "Formato de fecha inválido (dd/MM/yyyy).", Toast.LENGTH_LONG).show();
+						return;
+					}
+
+				// =====================================================
+				// 2. CREAR CLIENTE SOLO SI NO EXISTE
+				// =====================================================
+				int clienteIdFinal = clienteSeleccionadoId;
+
+				if (clienteIdFinal == -1) {
+						Cliente nuevo = new Cliente();
+						nuevo.setNombre(nombreClienteIngresado);
+						nuevo.setEstado(1);
+						nuevo.setCi("");
+						nuevo.setTelefono("");
+						nuevo.setDireccion("");
+						nuevo.setGarantia("");
+
+						ClientesDao clientesDao = new ClientesDao(this);
+						long newRowId = clientesDao.insertCliente(nuevo);
+
+						if (newRowId <= 0) {
+								Toast.makeText(this, "Error al crear el cliente.", Toast.LENGTH_LONG).show();
+								return;
+							}
+
+						clienteIdFinal = (int) newRowId;
+						clienteSeleccionadoId = clienteIdFinal;
+
+						Toast.makeText(this, "Cliente '" + nombreClienteIngresado + "' creado.", Toast.LENGTH_SHORT).show();
+					}
+
+				// =====================================================
+				// 3. Guardar crédito
+				// =====================================================
+
+				Plan planSeleccionado = (Plan) spPlan.getSelectedItem();
+
+				if (creditoActual == null) {
+						creditoActual = new Credito();
+					}
+
+				creditoActual.setClienteId(clienteIdFinal);
+				creditoActual.setPlanId(planSeleccionado.getId());
+				creditoActual.setCapital(Double.parseDouble(capitalStr));
+				creditoActual.setInteresPorcentaje(Double.parseDouble(tasaStr));
+				creditoActual.setFechaInicio(fechaInicioObjeto);
+
+				long resultado;
+
+				if (creditoId == -1) {
+						resultado = creditosDao.insertCreditoAndCuotas(creditoActual);
+						Toast.makeText(this, "Crédito creado.", Toast.LENGTH_SHORT).show();
+					} else {
+						resultado = creditosDao.updateCredito(creditoActual);
+						Toast.makeText(this, "Crédito actualizado.", Toast.LENGTH_SHORT).show();
+					}
+
+				if (resultado > 0) {
+						int nuevoCreditoId = creditoActual.getId();
+
+						Intent intent = new Intent(this, CuotasActivity.class);
+						intent.putExtra("CREDITO_ID", nuevoCreditoId);
+						startActivity(intent);
+						finish();
+
+					} else {
+						Toast.makeText(this, "Error al guardar crédito.", Toast.LENGTH_LONG).show();
+					}
+			}
 	}
