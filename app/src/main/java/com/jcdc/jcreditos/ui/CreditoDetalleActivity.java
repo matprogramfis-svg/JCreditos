@@ -14,10 +14,10 @@ import com.jcdc.jcreditos.model.*;
 import java.text.*;
 import java.util.*;
 
-public class CreditoDetalleActivity extends Activity implements OnCuotaActionListener
+public class CreditoDetalleActivity extends Activity
 	{
 
-		@Override
+		/*@Override
 		public void onCuotaPaid(int cuotaId)
 			{
 				// 💡 Paso 1: Verificamos que tengamos un crédito actual cargado
@@ -29,7 +29,32 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 						loadCuotasList(creditoActual.getId()); 
 					}
 			}
-		
+		// ***
+		@Override
+		public void onCuotaEdit(Cuota cuota) {
+
+				// EJEMPLO: Revertir el pago (poner Pagada = 0)
+				int filas = dao.revertirPago(cuota.getId()); // <-- Debes tener este método
+
+				if (filas > 0) {
+
+						// 1. Recargar la lista actualizada desde la BD
+						listaCuotas = dao.getCuotasByCreditoId(creditoId);
+
+						// 2. Actualizar el adaptador
+						adapter.updateData(listaCuotas);
+
+						Toast.makeText(CuotasActivity.this, 
+									   "Pago revertido para Cuota #" + cuota.getNumeroCuota(),
+									   Toast.LENGTH_SHORT).show();
+
+					} else {
+						Toast.makeText(CuotasActivity.this, 
+									   "Error al revertir el pago.", 
+									   Toast.LENGTH_SHORT).show();
+					}
+			}
+			*/
 		private boolean bloqueandoTexto = false;
 		
 		// Formato que el usuario ingresa/ve
@@ -719,5 +744,27 @@ public class CreditoDetalleActivity extends Activity implements OnCuotaActionLis
 					} else {
 						Toast.makeText(this, "Error al guardar crédito.", Toast.LENGTH_LONG).show();
 					}
+			}
+		@Override
+		public boolean onCreateOptionsMenu(Menu menu)
+			{
+				getMenuInflater().inflate(R.menu.menu_volver, menu);
+				return true;
+			}
+
+		@Override
+		public boolean onOptionsItemSelected(android.view.MenuItem item) {
+
+				switch (item.getItemId()) 
+					{
+						case R.id.itmVolver:
+							Intent back = new Intent(this,CreditosActivity.class);
+							startActivity(back);
+							return true;
+
+					}
+
+
+				return super.onOptionsItemSelected(item);
 			}
 	}

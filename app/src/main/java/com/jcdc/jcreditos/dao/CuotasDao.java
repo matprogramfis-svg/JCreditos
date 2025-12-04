@@ -18,7 +18,29 @@ public class CuotasDao {
 		public CuotasDao(Context context) {
 				dbHelper = new DbHelper(context);
 			}
+		// ***
+		public int revertirPago(int cuotaId) {
+				/*ContentValues cv = new ContentValues();
+				cv.put("pagada", 0);
+				return db.update("cuotas", cv, "id=?", new String[]{String.valueOf(cuotaId)});*/
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
 
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Cuotas.PAGADA, 0); // 0 = Revierte
+
+				String selection = DatabaseContract.Cuotas.ID + " = ?";
+				String[] selectionArgs = { String.valueOf(cuotaId) };
+
+				int count = db.update(
+					DatabaseContract.Cuotas.TABLE,
+					values,
+					selection,
+					selectionArgs
+				);
+
+				db.close();
+				return count; // Retorna el número de filas afectadas
+			}
 		// Marcar una cuota como pagada (Usa el TRIGGER que ya definiste en DbHelper)
 		public int markCuotaAsPaid(int cuotaId) {
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -40,6 +62,21 @@ public class CuotasDao {
 				return count; // Retorna el número de filas afectadas
 			}
 		// ***
+		/**
+		 * 🔥 NUEVO MÉTODO: Marca una cuota como NO PAGADA (Estado = 0).
+		 */
+		public int markCuotaAsUnpaid(int cuotaId) {
+				SQLiteDatabase db = dbHelper.getWritableDatabase();
+				ContentValues values = new ContentValues();
+				values.put(DatabaseContract.Cuotas.PAGADA, 0); // Revertir el estado a pendiente
+
+				String selection = DatabaseContract.Cuotas.ID + " = ?";
+				String[] selectionArgs = { String.valueOf(cuotaId) };
+
+				int rowsAffected = db.update(DatabaseContract.Cuotas.TABLE, values, selection, selectionArgs);
+				db.close();
+				return rowsAffected;
+			}
 		// Nuevo método dentro de CuotasDao
 
 // --- Auxiliar: Mapea Cursor a Cuota POJO ---

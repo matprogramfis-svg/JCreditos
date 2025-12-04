@@ -107,15 +107,13 @@ public class CreditosDao {
 		 
 		private void generateCuotas(SQLiteDatabase db, Credito credito, Plan plan) throws ParseException {
 			
-				Log.d("DEBUG_PLAN", "Plan seleccionado: " + plan.getNombre());
-				Log.d("DEBUG_PLAN", "Cuotas totales: " + plan.getCuotasTotales());
-				Log.d("DEBUG_PLAN", "Frecuencia: " + plan.getFrecuencia());
-				
 				int totalCuotas = plan.getCuotasTotales();
 				double montoPorCuota = credito.getTotal() / totalCuotas; // Amortización simple (iguales)
 
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTime(credito.getFechaInicio());
+				
+				calendar.add(Calendar.DAY_OF_MONTH, plan.getFrecuencia());
 
 				for (int i = 1; i <= totalCuotas; i++) {
 
@@ -345,5 +343,100 @@ public class CreditosDao {
 
 				db.close();
 				return rowsAffected;
+			}
+			// ***
+		// --- Obtener créditos por ID de cliente ---
+		/*public List<Credito> getCreditosByCliente(int clienteId) {
+				List<Credito> lista = new ArrayList<>();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor cursor = null;
+
+				String selection = DatabaseContract.Creditos.CLIENTE_ID + " = ? AND " +
+					DatabaseContract.Creditos.ESTADO + " = ?";
+				String[] selectionArgs = { String.valueOf(clienteId), "1" }; // solo créditos activos
+
+				try {
+						cursor = db.query(
+							DatabaseContract.Creditos.TABLE,
+							null,
+							selection,
+							selectionArgs,
+							null,
+							null,
+							DatabaseContract.Creditos.ID + " DESC"
+						);
+
+						if (cursor.moveToFirst()) {
+								do {
+										lista.add(cursorToCredito(cursor));
+									} while (cursor.moveToNext());
+							}
+
+					} catch (Exception e) {
+						Log.e("CreditosDao", "Error getCreditosByCliente: " + e.getMessage());
+					} finally {
+						if (cursor != null) cursor.close();
+						db.close();
+					}
+
+				return lista;
+			}*/
+			// ***
+		// package com.jcdc.jcreditos.dao;
+
+// ... (resto del código)
+
+// --- Obtener créditos por ID de cliente ---
+		public List<Credito> getCreditosByCliente(int clienteId) {
+				List<Credito> lista = new ArrayList<>();
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor cursor = null;
+
+				try {
+						String CRED = DatabaseContract.Creditos.TABLE;
+						String CLI = DatabaseContract.Clientes.TABLE;
+						String PLAN = DatabaseContract.Planes.TABLE;
+
+						// Cláusula WHERE: Filtrar por CLIENTE_ID y ESTADO = 1 (vigente)
+						String whereClause = "T1." + DatabaseContract.Creditos.CLIENTE_ID + " = ? AND " +
+							"T1." + DatabaseContract.Creditos.ESTADO + " = ?";
+						String[] selectionArgs = { String.valueOf(clienteId), "1" };
+
+						// CONSULTA RAW CON INNER JOIN (Copiada y adaptada de getAllCreditos)
+						String selectQuery =
+							"SELECT " +
+							"T1.*, " + // T1 es la tabla de CREDITOS (trae todas las columnas originales)
+							"T2." + DatabaseContract.Clientes.NOMBRE + " AS " + COL_NOMBRE_CLIENTE_ALIAS + ", " +
+							"T3." + DatabaseContract.Planes.NOMBRE + " AS " + COL_NOMBRE_PLAN_ALIAS +
+							" FROM " + CRED + " T1 " +
+							// INNER JOIN para Cliente
+							"INNER JOIN " + CLI + " T2 ON T1." + DatabaseContract.Creditos.CLIENTE_ID + " = T2." + DatabaseContract.Clientes.ID + " " +
+							// INNER JOIN para Plan
+							"INNER JOIN " + PLAN + " T3 ON T1." + DatabaseContract.Creditos.PLAN_ID + " = T3." + DatabaseContract.Planes.ID + " " +
+							"WHERE " + whereClause + " " + // <-- APLICAMOS LA CLÁUSULA WHERE
+							"ORDER BY T1." + DatabaseContract.Creditos.ID + " DESC";
+
+						cursor = db.rawQuery(selectQuery, selectionArgs); // <-- Pasamos los argumentos
+
+						if (cursor.moveToFirst()) {
+								do {
+										Credito credito = cursorToCredito(cursor);
+
+										// 🔥 ASIGNAR LOS CAMPOS EXTRA DEL JOIN (Asegurar que existen)
+										credito.setNombreCliente(cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE_CLIENTE_ALIAS)));
+										credito.setNombrePlan(cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE_PLAN_ALIAS)));
+
+										lista.add(credito);
+									} while (cursor.moveToNext());
+							}
+
+					} catch (Exception e) {
+						Log.e("CreditosDao", "Error getCreditosByCliente: " + e.getMessage());
+					} finally {
+						if (cursor != null) cursor.close();
+						db.close();
+					}
+
+				return lista;
 			}
 	}

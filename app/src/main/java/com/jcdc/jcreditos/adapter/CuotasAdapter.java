@@ -15,6 +15,7 @@ import com.jcdc.jcreditos.model.Cuota;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Date;
 
 import com.jcdc.jcreditos.dao.CuotasDao; // <-- AGREGAR ESTO
 // Importar la interfaz
@@ -111,7 +112,7 @@ public class CuotasAdapter extends BaseAdapter {
 				holder.tvMonto.setText("Bs. " + String.format("%.2f", cuota.getMontoCuota()));
 
 				// 5. Lógica de Estado (0=Pendiente, 1=Pagada)
-				if (cuota.getPagada() == 1) {
+				/*if (cuota.getPagada() == 1) {
 						holder.tvEstado.setText("Pagada");
 						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
 						holder.btnPagar.setImageResource(android.R.drawable.ic_menu_edit); // Icono para 'ver' o 'editar pago'
@@ -121,17 +122,47 @@ public class CuotasAdapter extends BaseAdapter {
 						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
 						holder.btnPagar.setImageResource(android.R.drawable.ic_input_add); // Icono para 'Pagar'
 						holder.btnPagar.setEnabled(true);
-					}
+					}*/
 
-				// 6. Listener para el botón "Pagar"
-				holder.btnPagar.setOnClickListener(new View.OnClickListener() {
+				// =========================================================================
+				// 🔥 LÓGICA DE ESTADO: Pagada, Vencida, o Pendiente
+				// =========================================================================
+				if (cuota.getPagada() == 1) {
+						// 5. Caso: PAGADA
+						holder.tvEstado.setText("Pagada");
+						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
+						holder.btnPagar.setImageResource(android.R.drawable.ic_menu_edit); // Icono para 'ver' o 'editar pago'
+						//holder.btnPagar.setEnabled(false); // Deshabilitar el botón si ya está pagada
+					} else {
+
+						// 6. Caso: PENDIENTE o VENCIDA (No está pagada)
+						Date fechaActual = new Date();
+						Date fechaVencimiento = cuota.getFechaPago();
+
+						// Comprobar si la fecha de vencimiento ya pasó
+						if (fechaVencimiento != null && fechaVencimiento.before(fechaActual)) {
+								// ESTADO VENCIDA
+								holder.tvEstado.setText("Vencida");
+								// Color diferente para indicar atraso (ej. naranja o marrón)
+								holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+							} else {
+								// ESTADO PENDIENTE
+								holder.tvEstado.setText("Pendiente");
+								holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
+							}
+
+						// El botón de pagar siempre debe estar habilitado si la cuota no está pagada
+						holder.btnPagar.setImageResource(android.R.drawable.ic_input_add); // Icono para 'Pagar'
+						holder.btnPagar.setEnabled(true);
+					}
+					
+				// 7. Listener para el botón "Pagar"
+				/*holder.btnPagar.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View v) {
 									// Aquí se implementaría la lógica para registrar el pago.
 									// Por ahora, solo mostramos un Toast. La lógica de DAO va después.
-									/*Toast.makeText(context, 
-												   "Pagar Cuota #" + cuota.getNumeroCuota() + " (ID: " + cuota.getId() + ")", 
-												   Toast.LENGTH_SHORT).show();*/
+									
 									if (cuota.getPagada() == 0) { // Solo si está pendiente
 
 											// 1. Llamar al DAO para actualizar la base de datos
@@ -148,6 +179,38 @@ public class CuotasAdapter extends BaseAdapter {
 													Toast.makeText(context, "Error al marcar el pago.", Toast.LENGTH_SHORT).show();
 												}
 											}
+								}
+						});*/
+						// ***
+				holder.btnPagar.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+
+									// SI YA ESTÁ PAGADA → modo edición / reversión
+									if (cuota.getPagada() == 1) {
+											if (listener != null) {
+													listener.onCuotaEdit(cuota);
+												}
+											return; // salir para NO ejecutar la lógica de pago
+										}
+
+									// SI ESTÁ PENDIENTE → pagar normal
+									int filasAfectadas = cuotasDao.markCuotaAsPaid(cuota.getId());
+
+									if (filasAfectadas > 0) {
+											Toast.makeText(context, 
+														   "Cuota #" + cuota.getNumeroCuota() + " Pagada!", 
+														   Toast.LENGTH_SHORT).show();
+
+											if (listener != null) {
+													listener.onCuotaPaid(cuota.getId());
+												}
+
+										} else {
+											Toast.makeText(context, 
+														   "Error al marcar el pago.", 
+														   Toast.LENGTH_SHORT).show();
+										}
 								}
 						});
 
