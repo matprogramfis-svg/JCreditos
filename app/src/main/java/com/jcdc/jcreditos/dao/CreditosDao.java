@@ -439,4 +439,25 @@ public class CreditosDao {
 
 				return lista;
 			}
+		// ***
+		public double calcularSaldoRestante(long creditoId) {
+				// 1. Consulta SQL para sumar los montos de las cuotas PENDIENTES (pagada = 0)
+				String sql = "SELECT SUM(monto_cuota) FROM " + DatabaseContract.Cuotas.TABLE +
+					" WHERE credito_id = ? AND pagada = 0";
+
+				SQLiteDatabase db = dbHelper.getReadableDatabase();
+				Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(creditoId)});
+
+				double saldo = 0.0;
+
+				if (cursor.moveToFirst()) {
+						// La columna 0 es el resultado del SUM
+						saldo = cursor.getDouble(0); 
+					}
+
+				cursor.close();
+				db.close();
+
+				return saldo;
+			}
 	}

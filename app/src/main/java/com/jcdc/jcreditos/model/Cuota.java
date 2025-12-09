@@ -2,13 +2,23 @@ package com.jcdc.jcreditos.model;
 import java.util.*;
 
 public class Cuota {
-		private int id;
+		private long id;
 		private int creditoId;
 		private int numeroCuota;
 		private double montoCuota;
 		private Date fechaPago; // Usar String para DATE
 		private int pagada; // 0 o 1
 		private String pagadaTs;
+
+		public void setId(long id)
+			{
+				this.id = id;
+			}
+
+		public long getId()
+			{
+				return id;
+			}
 
 		public void setFechaPago(Date fechaPago)
 			{
@@ -26,15 +36,7 @@ public class Cuota {
 		// ...
 
 
-		public void setId(int id)
-			{
-				this.id = id;
-			}
-
-		public int getId()
-			{
-				return id;
-			}
+		
 
 		public void setCreditoId(int creditoId)
 			{

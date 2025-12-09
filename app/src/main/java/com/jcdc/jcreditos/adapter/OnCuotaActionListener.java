@@ -20,4 +20,8 @@ public interface OnCuotaActionListener {
 		 * @param cuota Objeto Cuota completo.
 		 */
 		void onCuotaEdit(Cuota cuota);
+		// 🆕 NUEVO MÉTODO 🆕
+		// Notifica a la Activity que el monto ha cambiado.
+		// 'monto' será positivo para sumar y negativo para restar.
+		public void onCuotaSelectionChange(double monto);
 	}

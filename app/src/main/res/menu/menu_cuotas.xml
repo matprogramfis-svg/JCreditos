@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item 
+		android:id="@+id/itmVolver"
+		android:title="Volver"
+        android:orderInCategory="1"
+        android:showAsAction="ifRoom" />
+
+	<item 
+		android:id="@+id/itmEditarCuota"
+		android:title="Editar Cuota"
+        android:orderInCategory="1"
+        android:showAsAction="never" />
+	
+	<item 
+		android:id="@+id/itmArchivarTarjeta"
+		android:title="Archivar Tarjeta"
+        android:orderInCategory="2"
+        android:showAsAction="never" />
+    
+</menu>

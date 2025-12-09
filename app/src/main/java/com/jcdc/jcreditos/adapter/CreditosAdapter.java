@@ -1,25 +1,25 @@
 package com.jcdc.jcreditos.adapter;
 
-import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.TextView;
-import com.jcdc.jcreditos.R; // Asegúrate de que R apunte a tu proyecto
-import com.jcdc.jcreditos.model.Credito;
-import java.util.List;
+import android.content.*;
+import android.view.*;
+import android.widget.*;
+import com.jcdc.jcreditos.*;
+import com.jcdc.jcreditos.dao.*;
+import com.jcdc.jcreditos.model.*;
+import java.util.*;
 
 public class CreditosAdapter extends BaseAdapter {
 
 		private Context context;
 		private List<Credito> creditosList;
 		private LayoutInflater inflater;
+		private CreditosDao creditosDao; // 💡 Referencia al DAO
 
-		public CreditosAdapter(Context context, List<Credito> creditosList) {
+		public CreditosAdapter(Context context, List<Credito> creditosList, CreditosDao creditosDao) {
 				this.context = context;
 				this.creditosList = creditosList;
 				this.inflater = LayoutInflater.from(context);
+				this.creditosDao = creditosDao; // AHORA SÍ funciona
 			}
 
 		@Override
@@ -64,9 +64,32 @@ public class CreditosAdapter extends BaseAdapter {
 				Credito credito = creditosList.get(position);
 
 				// Asignación de datos utilizando los campos del JOIN (Cliente y Plan)
-				holder.tvClienteNombre.setText(credito.getNombreCliente());
+				//holder.tvClienteNombre.setText(credito.getNombreCliente());
 				// Formateo del monto (puedes usar NumberFormat si lo necesitas)
-				holder.tvCreditoMonto.setText("Bs. " + String.format("%.2f", credito.getTotal()));
+				//holder.tvCreditoMonto.setText("Bs. " + String.format("%.2f", credito.getTotal()));
+				
+				// =========================================================
+				// 🎯 CAMBIO 1: ID del Crédito junto al Nombre
+				// =========================================================
+				String nombreConId = credito.getNombreCliente() + " - " + credito.getId();
+				holder.tvClienteNombre.setText(nombreConId);
+
+				// =========================================================
+				// 🎯 CAMBIO 2: Mostrar Saldo Restante
+				// =========================================================
+				double saldoRestante = 0.0;
+				// ✅ Usamos el DAO para obtener el saldo restante
+				if (creditosDao != null) {
+						// **NOTA:** Asumo que existe el método calcularSaldoRestante(long id) en tu DAO.
+						// Si no existe, deberás crearlo en CreditosDao.java
+						saldoRestante = creditosDao.calcularSaldoRestante(credito.getId());
+					} else {
+						// Fallback si el DAO es nulo
+						saldoRestante = credito.getTotal(); 
+					}
+
+				// Mostrar el saldo restante
+				holder.tvCreditoMonto.setText("Bs. " + String.format("%.2f", saldoRestante));
 				holder.tvPlanNombre.setText("Plan: " + credito.getNombrePlan());
 				// Aquí puedes usar un switch o if para mostrar el estado como texto amigable
 				holder.tvCreditoEstado.setText(getEstadoTexto(credito.getEstado())); 

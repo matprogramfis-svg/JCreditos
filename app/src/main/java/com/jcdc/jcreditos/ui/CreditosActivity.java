@@ -139,7 +139,7 @@ public class CreditosActivity extends Activity {
 				List<Credito> lista = creditosDao.getAllCreditos();
 
 				if (adapter == null) {
-						adapter = new CreditosAdapter(this, lista);
+						adapter = new CreditosAdapter(this, lista, creditosDao);
 						listViewCreditos.setAdapter(adapter);
 					} else {
 						adapter.updateData(lista);
@@ -158,7 +158,7 @@ public class CreditosActivity extends Activity {
 				List<Credito> lista = creditosDao.getCreditosByCliente(clienteId);
 
 				if (adapter == null) {
-						adapter = new CreditosAdapter(this, lista);
+						adapter = new CreditosAdapter(this, lista, creditosDao);
 						listViewCreditos.setAdapter(adapter);
 					} else {
 						adapter.updateData(lista);

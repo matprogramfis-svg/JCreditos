@@ -20,6 +20,10 @@ import java.util.Date;
 import com.jcdc.jcreditos.dao.CuotasDao; // <-- AGREGAR ESTO
 // Importar la interfaz
 import com.jcdc.jcreditos.adapter.OnCuotaActionListener;
+// ... (tus importaciones existentes)
+import java.util.HashMap; // 🆕 NUEVO
+import java.util.Map;     // 🆕 NUEVO
+
 
 public class CuotasAdapter extends BaseAdapter {
 
@@ -29,19 +33,15 @@ public class CuotasAdapter extends BaseAdapter {
 		private CuotasDao cuotasDao; // <-- AGREGAR ESTO
 		private OnCuotaActionListener listener; // <-- AGREGAR ESTO
 		
-		// 💡 INTERFAZ DE COMUNICACIÓN (Debe estar dentro de la clase)
-		/*public interface OnCuotaActionListener {
-				void onCuotaPaid(int cuotaId);
-			}*/
+		// 1. Variable de estado en la clase CuotasAdapter
+		private boolean isEditMode = false; // Por defecto: modo normal
 
 		// Formato de fecha que usaste para mostrar (ej: 30/11/2025)
 		private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US); 
 
-		/*public CuotasAdapter(Context context, List<Cuota> cuotasList) {
-				this.context = context;
-				this.cuotasList = cuotasList;
-				this.inflater = LayoutInflater.from(context);
-			}*/
+		// 🆕 1. ESTRUCTURA PARA RASTREAR SELECCIÓN 🆕
+		// Usamos un mapa para saber qué cuotas están seleccionadas (Cuota ID -> Boolean)
+		private Map<Long, Boolean> selectedCuotas = new HashMap<>();
 			
 		// ✅ CONSTRUCTOR CORREGIDO: Acepta el listener
 		public CuotasAdapter(Context context, List<Cuota> cuotasList, OnCuotaActionListener listener) {
@@ -52,12 +52,23 @@ public class CuotasAdapter extends BaseAdapter {
 				this.listener = listener; // Guardar el listener
 			}
 			
+		// 🆕 MÉTODO CLAVE: Obtener el mapa de seleccionadas 🆕
+		public Map<Long, Boolean> getSelectedCuotas() {
+				return selectedCuotas;
+			}
+			
 		// Dentro de CuotasAdapter.java
 
 		public void updateData(List<Cuota> nuevaLista) {
 				this.cuotasList.clear();
 				this.cuotasList.addAll(nuevaLista);
 				notifyDataSetChanged();
+			}
+			
+		// 2. Método público para cambiar el estado desde la Activity
+		public void setEditMode(boolean isEditMode) {
+				this.isEditMode = isEditMode;
+				notifyDataSetChanged(); // Forzar a la lista a redibujarse
 			}
 
 		@Override
@@ -110,29 +121,19 @@ public class CuotasAdapter extends BaseAdapter {
 					}
 				//holder.tvFecha.setText(dateFormat.format(cuota.getFechaPago()));
 				holder.tvMonto.setText("Bs. " + String.format("%.2f", cuota.getMontoCuota()));
-
-				// 5. Lógica de Estado (0=Pendiente, 1=Pagada)
-				/*if (cuota.getPagada() == 1) {
-						holder.tvEstado.setText("Pagada");
-						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
-						holder.btnPagar.setImageResource(android.R.drawable.ic_menu_edit); // Icono para 'ver' o 'editar pago'
-						holder.btnPagar.setEnabled(false); // Deshabilitar el botón si ya está pagada
-					} else {
-						holder.tvEstado.setText("Pendiente");
-						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
-						holder.btnPagar.setImageResource(android.R.drawable.ic_input_add); // Icono para 'Pagar'
-						holder.btnPagar.setEnabled(true);
-					}*/
-
+				
 				// =========================================================================
 				// 🔥 LÓGICA DE ESTADO: Pagada, Vencida, o Pendiente
 				// =========================================================================
+				// El estado y color de texto deben reflejar si la cuota está seleccionada
+				boolean isSelected = selectedCuotas.containsKey(cuota.getId());
+				
 				if (cuota.getPagada() == 1) {
 						// 5. Caso: PAGADA
 						holder.tvEstado.setText("Pagada");
 						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
 						holder.btnPagar.setImageResource(android.R.drawable.ic_menu_edit); // Icono para 'ver' o 'editar pago'
-						//holder.btnPagar.setEnabled(false); // Deshabilitar el botón si ya está pagada
+						holder.btnPagar.setEnabled(this.isEditMode); // Deshabilitar el botón si ya está pagada
 					} else {
 
 						// 6. Caso: PENDIENTE o VENCIDA (No está pagada)
@@ -154,6 +155,19 @@ public class CuotasAdapter extends BaseAdapter {
 						// El botón de pagar siempre debe estar habilitado si la cuota no está pagada
 						holder.btnPagar.setImageResource(android.R.drawable.ic_input_add); // Icono para 'Pagar'
 						holder.btnPagar.setEnabled(true);
+						
+							// 🆕 CAMBIO VISUAL SI ESTÁ SELECCIONADA 🆕
+							if (isSelected) {
+									// Si está seleccionada, cambia el icono a una marca de verificación (check)
+									holder.btnPagar.setImageResource(android.R.drawable.checkbox_on_background);
+									// Opcional: Cambiar el color de fondo de toda la fila para resaltar
+									convertView.setBackgroundColor(context.getResources().getColor(android.R.color.holo_blue_light));
+								} else {
+									// Si no está seleccionada, usa el icono normal (el '+' o input_add)
+									holder.btnPagar.setImageResource(android.R.drawable.ic_input_add);
+									// Restablecer el color de fondo
+									convertView.setBackgroundColor(context.getResources().getColor(android.R.color.transparent));
+								}
 					}
 					
 				// 7. Listener para el botón "Pagar"
@@ -195,7 +209,7 @@ public class CuotasAdapter extends BaseAdapter {
 										}
 
 									// SI ESTÁ PENDIENTE → pagar normal
-									int filasAfectadas = cuotasDao.markCuotaAsPaid(cuota.getId());
+									/*int filasAfectadas = cuotasDao.markCuotaAsPaid(cuota.getId());
 
 									if (filasAfectadas > 0) {
 											Toast.makeText(context, 
@@ -210,7 +224,26 @@ public class CuotasAdapter extends BaseAdapter {
 											Toast.makeText(context, 
 														   "Error al marcar el pago.", 
 														   Toast.LENGTH_SHORT).show();
+										}*/
+										
+									// 🔥 LÓGICA DE SELECCIÓN/DESELECCIÓN 🔥
+									if (selectedCuotas.containsKey(cuota.getId())) {
+											// DESELECCIONAR
+											selectedCuotas.remove(cuota.getId());
+											// Notificar a la Activity para RESTAR el monto
+											if (listener != null) {
+													listener.onCuotaSelectionChange(-cuota.getMontoCuota()); // Monto negativo para restar
+												}
+										} else {
+											// SELECCIONAR
+											selectedCuotas.put(cuota.getId(), true);
+											// Notificar a la Activity para SUMAR el monto
+											if (listener != null) {
+													listener.onCuotaSelectionChange(cuota.getMontoCuota()); // Monto positivo para sumar
+												}
 										}
+
+									notifyDataSetChanged(); // Redibujar la lista para actualizar el icono/color
 								}
 						});
 

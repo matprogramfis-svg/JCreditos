@@ -19,7 +19,7 @@ public class CuotasDao {
 				dbHelper = new DbHelper(context);
 			}
 		// ***
-		public int revertirPago(int cuotaId) {
+		public int revertirPago(long cuotaId) {
 				/*ContentValues cv = new ContentValues();
 				cv.put("pagada", 0);
 				return db.update("cuotas", cv, "id=?", new String[]{String.valueOf(cuotaId)});*/
@@ -42,7 +42,7 @@ public class CuotasDao {
 				return count; // Retorna el número de filas afectadas
 			}
 		// Marcar una cuota como pagada (Usa el TRIGGER que ya definiste en DbHelper)
-		public int markCuotaAsPaid(int cuotaId) {
+		public int markCuotaAsPaid(long cuotaId) {
 				SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 				ContentValues values = new ContentValues();
