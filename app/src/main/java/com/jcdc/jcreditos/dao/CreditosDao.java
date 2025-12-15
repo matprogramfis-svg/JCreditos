@@ -105,7 +105,7 @@ public class CreditosDao {
 		 * Lógica principal para calcular fechas e insertar cuotas.
 		 */
 		 
-		private void generateCuotas(SQLiteDatabase db, Credito credito, Plan plan) throws ParseException {
+		/*private void generateCuotas(SQLiteDatabase db, Credito credito, Plan plan) throws ParseException {
 			
 				int totalCuotas = plan.getCuotasTotales();
 				double montoPorCuota = credito.getTotal() / totalCuotas; // Amortización simple (iguales)
@@ -130,13 +130,13 @@ public class CreditosDao {
 							}
 
 						// 2. APLICAR SALTO DOMINGO
-						/*if (plan.getSaltoDomingo() == 1) {
+						if (plan.getSaltoDomingo() == 1) {
 								// Si el día de pago cae en domingo, salta al lunes
 								// Calendar.SUNDAY = 1
 								while (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
 										calendar.add(Calendar.DAY_OF_MONTH, 1); // Agregar un día más
 									}
-							}*/
+							}
 
 						Date fechaPago = calendar.getTime();
 
@@ -162,8 +162,96 @@ public class CreditosDao {
 								throw new RuntimeException("Fallo al insertar la cuota número: " + i);
 							}
 					}
-			}
+			}*/
 			// ***
+		private void generateCuotas(SQLiteDatabase db, Credito credito, Plan plan) throws ParseException {
+
+				int totalCuotas = plan.getCuotasTotales();
+				double montoTotal = credito.getTotal(); // Monto total del crédito
+
+				// 1. CALCULAR MONTO BASE DE LA CUOTA (sin redondeo)
+				double montoBasePorCuota = montoTotal / totalCuotas; 
+
+				// 2. CALCULAR MONTO AJUSTADO (Redondeado al Múltiplo de 5 superior)
+				// Usaremos una función auxiliar (ver abajo)
+				double montoAjustado = roundUpToNearestFive(montoBasePorCuota); 
+
+				// 3. CALCULAR MONTO DEL REMANENTE: 
+				// Lo que sobra de ajustar todas las cuotas (menos la última)
+				double montoRemanente = montoTotal; // Empezamos con el total
+
+				// Restamos lo que pagarían las primeras (N-1) cuotas al monto ajustado
+				montoRemanente -= montoAjustado * (totalCuotas - 1);
+
+				// El 'montoRemanente' ahora contiene el monto que DEBE tener la última cuota para cuadrar.
+
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(credito.getFechaInicio());
+
+				calendar.add(Calendar.DAY_OF_MONTH, plan.getFrecuencia()); // Primera cuota
+
+				for (int i = 1; i <= totalCuotas; i++) {
+
+						double montoCuotaFinal;
+
+						// 4. ASIGNAR MONTO DE LA CUOTA
+						if (i < totalCuotas) {
+								// Asignar el monto ajustado a todas las cuotas excepto la última
+								montoCuotaFinal = montoAjustado; 
+							} else {
+								// Asignar el remanente (monto exacto para cuadrar) a la última cuota
+								montoCuotaFinal = montoRemanente; 
+							}
+
+						// 1. CALCULAR FECHA DE VENCIMIENTO
+						if (i > 1) {
+								calendar.add(Calendar.DAY_OF_MONTH, plan.getFrecuencia());
+							}
+
+						// 2. APLICAR SALTO DOMINGO (Dejamos tu lógica comentada)
+						/*if (plan.getSaltoDomingo() == 1) {
+						 while (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+						 calendar.add(Calendar.DAY_OF_MONTH, 1); 
+						 }
+						 }*/
+
+						Date fechaPago = calendar.getTime();
+
+						String logFecha = DB_DATE_FORMAT.format(fechaPago);
+						Log.d("GeneracionCuotas",
+							  "Credito ID: " + credito.getId() +
+							  " | Cuota #" + i +
+							  " | Monto: " + String.format("%.2f", montoCuotaFinal) + // 🔥 Usamos el monto ajustado/remanente
+							  " | Fecha Vencimiento (DB Format): " + logFecha);
+
+						// 3. INSERTAR CUOTA
+						Cuota cuota = new Cuota();
+						cuota.setCreditoId(credito.getId());
+						cuota.setNumeroCuota(i);
+						cuota.setMontoCuota(montoCuotaFinal); // 🔥 Asignamos el monto final
+						cuota.setFechaPago(fechaPago);
+						cuota.setPagada(0); // Nueva cuota, no pagada
+
+						// LLAMADA AL DAO DE CUOTAS
+						long cuotaRowId = cuotasDao.insertCuota(db, cuota); 
+
+						if (cuotaRowId < 0) {
+								throw new RuntimeException("Fallo al insertar la cuota número: " + i);
+							}
+					}
+			}
+
+		/**
+		 * Función auxiliar para redondear un valor Double al múltiplo de 5 superior (ceiling).
+		 * Ejemplos: 262.50 -> 265.00; 260.00 -> 260.00; 262.00 -> 265.00
+		 * @param value El monto a redondear.
+		 * @return El monto redondeado al múltiplo de 5 superior.
+		 */
+		private double roundUpToNearestFive(double value) {
+				if (value <= 0) return 0.0;
+				// Multiplicar por 0.2 (1/5), tomar el techo (ceiling), y multiplicar por 5
+				return Math.ceil(value / 5.0) * 5.0;
+			}
 		/**
 		 * Obtiene un objeto Credito completo por su ID.
 		 * @param id El ID del crédito a buscar.
@@ -345,44 +433,6 @@ public class CreditosDao {
 				return rowsAffected;
 			}
 			// ***
-		// --- Obtener créditos por ID de cliente ---
-		/*public List<Credito> getCreditosByCliente(int clienteId) {
-				List<Credito> lista = new ArrayList<>();
-				SQLiteDatabase db = dbHelper.getReadableDatabase();
-				Cursor cursor = null;
-
-				String selection = DatabaseContract.Creditos.CLIENTE_ID + " = ? AND " +
-					DatabaseContract.Creditos.ESTADO + " = ?";
-				String[] selectionArgs = { String.valueOf(clienteId), "1" }; // solo créditos activos
-
-				try {
-						cursor = db.query(
-							DatabaseContract.Creditos.TABLE,
-							null,
-							selection,
-							selectionArgs,
-							null,
-							null,
-							DatabaseContract.Creditos.ID + " DESC"
-						);
-
-						if (cursor.moveToFirst()) {
-								do {
-										lista.add(cursorToCredito(cursor));
-									} while (cursor.moveToNext());
-							}
-
-					} catch (Exception e) {
-						Log.e("CreditosDao", "Error getCreditosByCliente: " + e.getMessage());
-					} finally {
-						if (cursor != null) cursor.close();
-						db.close();
-					}
-
-				return lista;
-			}*/
-			// ***
-		// package com.jcdc.jcreditos.dao;
 
 // ... (resto del código)
 
