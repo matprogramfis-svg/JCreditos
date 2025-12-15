@@ -28,6 +28,10 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
 		private TextView tvMontoAcumulado;     // TextView para mostrar el monto (ej: Bs. 40.00)
 		private Button btnPagarSeleccionadas;  // El nuevo botón de acción flotante
 		private double montoTotalAcumulado = 0.0; // Variable de suma
+		// 🆕 NUEVA DECLARACIÓN 🆕
+		private TextView tvSaldoPendiente;
+		// 🆕 NUEVA VARIABLE PARA EL SALDO TOTAL BASE 🆕
+		private double saldoInicialCredito = 0.0;
 
 		@Override
 		protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,8 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
 				llTotalAcumulado = (LinearLayout) findViewById(R.id.ll_total_acumulado);
 				tvMontoAcumulado = (TextView) findViewById(R.id.tv_monto_acumulado);
 				btnPagarSeleccionadas = (Button) findViewById(R.id.btn_pagar_seleccionadas);
-
+				// 🆕 REFERENCIA A LA NUEVA VISTA 🆕
+				tvSaldoPendiente = findViewById(R.id.tv_saldo_pendiente);
 
 				// RECIBIR EL ID DEL CRÉDITO
 				creditoId = getIntent().getIntExtra("CREDITO_ID", -1);
@@ -120,6 +125,12 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
         public void onCuotaSelectionChange(double monto) {
 				// Este método se llama desde el adaptador cada vez que se selecciona/deselecciona
 				montoTotalAcumulado += monto;
+				
+				// 2. 🆕 CÁLCULO DINÁMICO DEL SALDO 🆕
+				double saldoDinamico = saldoInicialCredito - montoTotalAcumulado;
+
+				// 3. Actualizar el TextView del Saldo Pendiente (el que está junto a Cliente/Plan)
+				tvSaldoPendiente.setText("Saldo : " + String.format("%.2f", saldoDinamico)+ " Bs.");
 
 				// 1. Actualizar el texto del total
 				String totalFormat = String.format("%.2f", montoTotalAcumulado);
@@ -231,6 +242,27 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
 							} else {
 								tvPlanNombre.setText("Plan: N/A");
 							}
+						// 🆕 LÓGICA CLAVE: CALCULAR Y MOSTRAR SALDO PENDIENTE 🆕
+
+						// El método calcularSaldoRestante espera un 'long', así que convertimos el 'int' de la Activity.
+						// creditosDao es la instancia correcta para este método.
+						// 1. Calcular el saldo actual (estático)
+						double saldo = creditosDao.calcularSaldoRestante((long) id);
+						// 2. Almacenar este saldo como base para el cálculo dinámico
+						saldoInicialCredito = saldo; 
+						// 3. Mostrar el saldo inicial
+						//tvSaldoPendiente.setText("Bs. " + String.format("%.2f", saldo));
+						//double saldo = creditosDao.calcularSaldoRestante((long) id);
+						// 2. Mostrar el saldo pendiente
+						tvSaldoPendiente.setText("Saldo : " + String.format("%.2f", saldo)+ " Bs");
+
+						// 3. Opcional: Cambiar color basado en el saldo
+						/*if (saldo <= 0) {
+								tvSaldoPendiente.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+							} else {
+								tvSaldoPendiente.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+							}*/
+					
 					}
 			}
 
