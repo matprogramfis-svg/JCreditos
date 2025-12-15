@@ -63,11 +63,6 @@ public class CreditosAdapter extends BaseAdapter {
 
 				Credito credito = creditosList.get(position);
 
-				// Asignación de datos utilizando los campos del JOIN (Cliente y Plan)
-				//holder.tvClienteNombre.setText(credito.getNombreCliente());
-				// Formateo del monto (puedes usar NumberFormat si lo necesitas)
-				//holder.tvCreditoMonto.setText("Bs. " + String.format("%.2f", credito.getTotal()));
-				
 				// =========================================================
 				// 🎯 CAMBIO 1: ID del Crédito junto al Nombre
 				// =========================================================
@@ -80,8 +75,6 @@ public class CreditosAdapter extends BaseAdapter {
 				double saldoRestante = 0.0;
 				// ✅ Usamos el DAO para obtener el saldo restante
 				if (creditosDao != null) {
-						// **NOTA:** Asumo que existe el método calcularSaldoRestante(long id) en tu DAO.
-						// Si no existe, deberás crearlo en CreditosDao.java
 						saldoRestante = creditosDao.calcularSaldoRestante(credito.getId());
 					} else {
 						// Fallback si el DAO es nulo
@@ -90,7 +83,7 @@ public class CreditosAdapter extends BaseAdapter {
 
 				// Mostrar el saldo restante
 				holder.tvCreditoMonto.setText("Bs. " + String.format("%.2f", saldoRestante));
-				holder.tvPlanNombre.setText("Plan: " + credito.getNombrePlan());
+				holder.tvPlanNombre.setText("Plan: " + credito.getNombrePlan() + " - " + credito.getCapital());
 				// Aquí puedes usar un switch o if para mostrar el estado como texto amigable
 				holder.tvCreditoEstado.setText(getEstadoTexto(credito.getEstado())); 
 

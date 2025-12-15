@@ -30,6 +30,7 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
 		private double montoTotalAcumulado = 0.0; // Variable de suma
 		// 🆕 NUEVA DECLARACIÓN 🆕
 		private TextView tvSaldoPendiente;
+		private TextView tvCuotaCapital;
 		// 🆕 NUEVA VARIABLE PARA EL SALDO TOTAL BASE 🆕
 		private double saldoInicialCredito = 0.0;
 
@@ -48,6 +49,7 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
                 // 1. REFERENCIAR VISTAS EXISTENTES
 				tvClienteNombre = findViewById(R.id.tv_cuotas_cliente_nombre);
 				tvPlanNombre = findViewById(R.id.tv_cuotas_plan_nombre);
+				tvCuotaCapital = findViewById(R.id.tv_cuotas_capital);
 
                 // 2. REFERENCIAR LAS NUEVAS VISTAS DEL XML
                 // Estos IDs provienen del layout XML que modificamos.
@@ -244,7 +246,7 @@ public class CuotasActivity extends Activity implements OnCuotaActionListener {
 							}
 						// 🆕 LÓGICA CLAVE: CALCULAR Y MOSTRAR SALDO PENDIENTE 🆕
 
-						// El método calcularSaldoRestante espera un 'long', así que convertimos el 'int' de la Activity.
+						tvCuotaCapital.setText("Capital :"+credito.getCapital());
 						// creditosDao es la instancia correcta para este método.
 						// 1. Calcular el saldo actual (estático)
 						double saldo = creditosDao.calcularSaldoRestante((long) id);

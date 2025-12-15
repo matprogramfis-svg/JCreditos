@@ -16,6 +16,14 @@
 		android:layout_marginBottom="4dp"
 		android:textColor="#333333"/>
 
+	<TextView
+		android:id="@+id/tv_cuotas_plan_nombre"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="Plan: [Nombre del Plan]"
+		android:textSize="16sp"
+		android:textColor="#666666"/>
+
 	<LinearLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
@@ -23,13 +31,13 @@
 		android:layout_marginBottom="16dp">
 
 		<TextView
-			android:id="@+id/tv_cuotas_plan_nombre"
+			android:id="@+id/tv_cuotas_capital"
 			android:layout_width="0dp"
 			android:layout_weight="1"
 			android:layout_height="wrap_content"
-			android:text="Plan: [Nombre del Plan]"
+			android:text="Capital :"
 			android:textSize="16sp"
-			android:textColor="#666666"/>
+			android:textColor="#000000"/>
 
 		<TextView
 			android:id="@+id/tv_saldo_pendiente"
