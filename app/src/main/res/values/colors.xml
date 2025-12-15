@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pagada_suave">#C8E6C9</color> 
+	<color name="vencida_suave">#FFCDD2</color> 
+	<color name="pendiente_sin_fondo">#FFFFFF</color> 
+</resources>

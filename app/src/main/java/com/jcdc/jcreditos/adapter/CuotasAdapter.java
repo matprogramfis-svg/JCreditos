@@ -38,6 +38,9 @@ public class CuotasAdapter extends BaseAdapter {
 
 		// Formato de fecha que usaste para mostrar (ej: 30/11/2025)
 		private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US); 
+		
+		// 🆕 Nueva lógica para el color de fondo 🆕
+		int colorFondo; // Variable para almacenar el ID del recurso de color
 
 		// 🆕 1. ESTRUCTURA PARA RASTREAR SELECCIÓN 🆕
 		// Usamos un mapa para saber qué cuotas están seleccionadas (Cuota ID -> Boolean)
@@ -134,6 +137,10 @@ public class CuotasAdapter extends BaseAdapter {
 						holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
 						holder.btnPagar.setImageResource(android.R.drawable.ic_menu_edit); // Icono para 'ver' o 'editar pago'
 						holder.btnPagar.setEnabled(this.isEditMode); // Deshabilitar el botón si ya está pagada
+						
+						// 🔥 ASIGNAR COLOR PAGADA 🔥
+						colorFondo = R.color.pagada_suave;
+						
 					} else {
 
 						// 6. Caso: PENDIENTE o VENCIDA (No está pagada)
@@ -146,10 +153,15 @@ public class CuotasAdapter extends BaseAdapter {
 								holder.tvEstado.setText("Vencida");
 								// Color diferente para indicar atraso (ej. naranja o marrón)
 								holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+									// 🔥 ASIGNAR COLOR VENCIDA 🔥
+									colorFondo = R.color.vencida_suave;
+								
 							} else {
 								// ESTADO PENDIENTE
 								holder.tvEstado.setText("Pendiente");
 								holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
+									// 🔥 ASIGNAR COLOR PENDIENTE 🔥
+									colorFondo = R.color.pendiente_sin_fondo; // O R.color.white
 							}
 
 						// El botón de pagar siempre debe estar habilitado si la cuota no está pagada
@@ -171,30 +183,13 @@ public class CuotasAdapter extends BaseAdapter {
 					}
 					
 				// 7. Listener para el botón "Pagar"
-				/*holder.btnPagar.setOnClickListener(new View.OnClickListener() {
-							@Override
-							public void onClick(View v) {
-									// Aquí se implementaría la lógica para registrar el pago.
-									// Por ahora, solo mostramos un Toast. La lógica de DAO va después.
-									
-									if (cuota.getPagada() == 0) { // Solo si está pendiente
-
-											// 1. Llamar al DAO para actualizar la base de datos
-											int filasAfectadas = cuotasDao.markCuotaAsPaid(cuota.getId()); // <-- Debes tener este método en CuotasDao
-
-											if (filasAfectadas > 0) {
-													Toast.makeText(context, "Cuota #" + cuota.getNumeroCuota() + " Pagada!", Toast.LENGTH_SHORT).show();
-
-													// 2. Notificar a la Activity para recargar la lista
-													if (listener != null) {
-															listener.onCuotaPaid(cuota.getId());
-														}
-												} else {
-													Toast.makeText(context, "Error al marcar el pago.", Toast.LENGTH_SHORT).show();
-												}
-											}
-								}
-						});*/
+				// ------------------------------------------------------------------------
+// 🔥 APLICAR EL COLOR DE FONDO FINAL A LA FILA 🔥
+// ------------------------------------------------------------------------
+// Nota: En Android moderno, el contexto.getResources().getColor() está desaprobado 
+// y podría requerir el uso de ContextCompat.getColor(context, colorId) 
+// si tu versión de AIDE lo soporta. Si no, usa el método clásico:
+				convertView.setBackgroundColor(context.getResources().getColor(colorFondo));
 						// ***
 				holder.btnPagar.setOnClickListener(new View.OnClickListener() {
 							@Override
